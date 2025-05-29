@@ -1,8 +1,9 @@
-'use strict';
+import { QueryInterface, DataTypes } from 'sequelize';
+
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Usuarios', {
+export default {
+  async up(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.createTable('usuarios', {
       id: {
         allowNull: false,
         primaryKey: true,
@@ -10,21 +11,27 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4
       },
       nombre: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       correo: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
       },
       contraseña: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       nivel: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
       zonaId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
-          model: 'Zonas',
+          model: 'zonas',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -32,8 +39,9 @@ module.exports = {
       },
       deporteId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
-          model: 'Deportes',
+          model: 'deportes',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -49,7 +57,7 @@ module.exports = {
       }
     });
   },
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Usuarios');
+  async down(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.dropTable('usuarios');
   }
 };

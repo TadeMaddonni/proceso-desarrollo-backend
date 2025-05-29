@@ -1,8 +1,9 @@
-'use strict';
+import { QueryInterface, DataTypes } from 'sequelize';
+
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Partidos', {
+export default {
+  async up(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.createTable('partidos', {
       id: {
         allowNull: false,
         primaryKey: true,
@@ -11,8 +12,9 @@ module.exports = {
       },
       deporteId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
-          model: 'Deportes',
+          model: 'deportes',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -20,8 +22,9 @@ module.exports = {
       },
       zonaId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
-          model: 'Zonas',
+          model: 'zonas',
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -29,27 +32,38 @@ module.exports = {
       },
       organizadorId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
-          model: 'Usuarios',
+          model: 'usuarios',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
       },
       fecha: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        allowNull: false
       },
       hora: {
-        type: Sequelize.TIME
+        type: Sequelize.TIME,
+        allowNull: false
       },
       duracion: {
-        type: Sequelize.FLOAT
+        type: Sequelize.FLOAT,
+        allowNull: false
       },
       direccion: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       estado: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: 'pendiente'
+      },
+      equipoGanadorId: {
+        type: Sequelize.UUID,
+        allowNull: true
       },
       createdAt: {
         allowNull: false,
@@ -61,7 +75,7 @@ module.exports = {
       }
     });
   },
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Partidos');
+  async down(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.dropTable('partidos');
   }
 };

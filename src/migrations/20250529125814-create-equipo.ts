@@ -1,34 +1,28 @@
-'use strict';
+import { QueryInterface, DataTypes } from 'sequelize';
+
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Historials', {
+export default {
+  async up(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.createTable('equipos', {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4
       },
-      usuarioId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'Usuarios',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
-      },
       partidoId: {
         type: Sequelize.UUID,
+        allowNull: false,
         references: {
-          model: 'Partidos',
+          model: 'partidos',
           key: 'id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
-      resultado: {
-        type: Sequelize.STRING
+      nombre: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -40,7 +34,7 @@ module.exports = {
       }
     });
   },
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Historials');
+  async down(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.dropTable('equipos');
   }
 };

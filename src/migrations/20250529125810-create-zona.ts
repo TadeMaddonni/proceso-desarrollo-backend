@@ -1,9 +1,9 @@
-'use strict';
+import { QueryInterface, DataTypes } from 'sequelize';
 
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('deportes', {
+export default {
+  async up(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.createTable('zonas', {
       id: {
         allowNull: false,
         primaryKey: true,
@@ -14,18 +14,17 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
-
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('deportes');
+  async down(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+    await queryInterface.dropTable('zonas');
   }
 };

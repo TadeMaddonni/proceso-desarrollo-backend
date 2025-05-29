@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Sequelize, DataTypes } from 'sequelize';
+import { Sequelize, DataTypes, ModelStatic, Model } from 'sequelize';
 import dotenv from 'dotenv';
 import databaseConfig from '../config/database.js';
 
@@ -12,17 +12,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = databaseConfig[env];
+const config = databaseConfig[env as keyof typeof databaseConfig];
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+interface DbInterface {
+  [key: string]: ModelStatic<Model> | Sequelize | typeof Sequelize;
+  sequelize: Sequelize;
+  Sequelize: typeof Sequelize;
 }
 
-async function initializeModels() {
-  const db = {};
+let sequelize: Sequelize;
+if (config.use_env_variable) {
+  const { username, password, database, ...options } = config;
+  sequelize = new Sequelize(process.env[config.use_env_variable] as string, options);
+} else {
+  const { username, password, database, ...options } = config;
+  sequelize = new Sequelize(database, username, password || undefined, options);
+}
+
+async function initializeModels(): Promise<DbInterface> {
+  const db: DbInterface = {} as DbInterface;
 
   const files = fs.readdirSync(__dirname)
     .filter(file => {
@@ -40,7 +48,7 @@ async function initializeModels() {
     const modelPath = new URL(file, import.meta.url);
     
     try {
-      const model = await import(modelPath);
+      const model = await import(modelPath.href);
       // ESM uses default export
       const modelDefiner = model.default;
       
@@ -52,11 +60,13 @@ async function initializeModels() {
       console.error(`Error importing model ${file}:`, error);
     }
   }
-
   // Associate all models
   Object.keys(db).forEach(modelName => {
-    if (db[modelName].associate) {
-      db[modelName].associate(db);
+    if (modelName !== 'sequelize' && modelName !== 'Sequelize') {
+      const model = db[modelName] as ModelStatic<Model> & { associate?: (db: DbInterface) => void };
+      if (model.associate) {
+        model.associate(db);
+      }
     }
   });
 

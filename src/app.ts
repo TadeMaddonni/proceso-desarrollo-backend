@@ -7,6 +7,17 @@ dotenv.config({ path: '.env' });
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Error handling
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 // Middleware
 app.use(express.json());
 
@@ -16,8 +27,20 @@ const healthController = new HealthController();
 // Routes
 app.get('/health', healthController.check);
 
+// Test route
+app.get('/', (req, res) => {
+  res.json({ message: 'Backend TypeScript funcionando correctamente!' });
+});
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+const server = app.listen(port, () => {
+  console.log(`✅ Server running on port ${port}`);
+  console.log(`📍 Health check: http://localhost:${port}/health`);
+  console.log(`🏠 Home: http://localhost:${port}/`);
 });
+
+server.on('error', (error) => {
+  console.error('❌ Server error:', error);
+});
+
+console.log('🚀 Starting server...');
