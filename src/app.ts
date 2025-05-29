@@ -1,5 +1,5 @@
 import express, { NextFunction } from 'express';
-import { HealthController } from './controllers/health/HealthController'; 
+import { HealthController } from './controllers/health/HealthController.js'; 
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
