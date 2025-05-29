@@ -23,5 +23,23 @@ export class AuthController {
         const user = this.authService.signup(email, password);
         res.json(user);
     };
+
+
+    login = (req: Request, res: Response): void => {
+        if (!req.body) {
+            res.status(400).json({ error: 'Request body is required' });
+            return;
+        }
+
+        const { email, password } = req.body
+
+        if (!email || !password) {
+            res.status(400).json({ error: 'Email and password are required' });
+            return;
+        }
+
+        const user = this.authService.login(email, password);
+        res.json(user);
+    }
 }
 

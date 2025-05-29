@@ -14,4 +14,11 @@ export class AuthService {
             password
         };
     }
+
+    login(email: string, password: string) {
+        return {
+            email,
+            password
+        };
+    }
 }
