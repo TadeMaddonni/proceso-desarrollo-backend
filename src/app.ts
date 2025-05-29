@@ -1,5 +1,6 @@
 import express, { NextFunction } from 'express';
 import { HealthController } from './controllers/health/HealthController.js'; 
+import authRouter from './routes/auth/Auth.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -32,11 +33,13 @@ app.get('/', (req, res) => {
   res.json({ message: 'Backend TypeScript funcionando correctamente!' });
 });
 
+// Auth routes
+app.use('/auth', authRouter);
+
 // Start server
 const server = app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
   console.log(`📍 Health check: http://localhost:${port}/health`);
-  console.log(`🏠 Home: http://localhost:${port}/`);
 });
 
 server.on('error', (error) => {
