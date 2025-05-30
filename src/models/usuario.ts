@@ -68,7 +68,7 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     },
     nivel: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       validate: {
         min: 1,
         max: 3
@@ -80,13 +80,13 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     },
     deporteId: {
       type: DataTypes.UUID,
-      allowNull: false
-    }
-  }, {
+      allowNull: true
+    }  }, {
     sequelize,
     modelName: 'Usuario',
     tableName: 'usuarios',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return Usuario;

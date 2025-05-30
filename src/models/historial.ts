@@ -49,12 +49,12 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     resultado: {
       type: DataTypes.STRING,
       allowNull: false
-    }
-  }, {
+    }  }, {
     sequelize,
     modelName: 'Historial',
     tableName: 'historiales',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return Historial;

@@ -91,12 +91,12 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     equipoGanadorId: {
       type: DataTypes.UUID,
       allowNull: true
-    }
-  }, {
+    }  }, {
     sequelize,
     modelName: 'Partido',
     tableName: 'partidos',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return Partido;

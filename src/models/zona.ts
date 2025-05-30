@@ -38,12 +38,12 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     nombre: {
       type: DataTypes.STRING,
       allowNull: false
-    }
-  }, {
+    }  }, {
     sequelize,
     modelName: 'Zona',
     tableName: 'zonas',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return Zona;

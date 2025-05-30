@@ -10,6 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "db:migrate": "sequelize-cli db:migrate",
+    "seed": "node --loader ts-node/esm src/seeders/seed.ts",
     "db:seed": "sequelize-cli db:seed:all",
     "db:create": "sequelize-cli db:create",
     "db:drop": "sequelize-cli db:drop"

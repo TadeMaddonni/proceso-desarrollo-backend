@@ -30,16 +30,14 @@ if (config.use_env_variable) {
 }
 
 async function initializeModels(): Promise<DbInterface> {
-  const db: DbInterface = {} as DbInterface;
-
-  const files = fs.readdirSync(__dirname)
+  const db: DbInterface = {} as DbInterface;  const files = fs.readdirSync(__dirname)
     .filter(file => {
       return (
         file.indexOf('.') !== 0 &&
         file !== basename &&
-        (file.slice(-3) === '.js' || file.slice(-3) === '.ts') &&
-        file.indexOf('.test.js') === -1 &&
-        file.indexOf('.test.ts') === -1
+        (file.endsWith('.js') || (file.endsWith('.ts') && !file.endsWith('.d.ts'))) &&
+        !file.includes('.test.') &&
+        !file.includes('.spec.')
       );
     });
 

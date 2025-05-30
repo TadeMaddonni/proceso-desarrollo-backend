@@ -41,12 +41,12 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     equipoId: {
       type: DataTypes.UUID,
       allowNull: false
-    }
-  }, {
+    }  }, {
     sequelize,
     modelName: 'UsuarioEquipo',
     tableName: 'usuario_equipos',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return UsuarioEquipo;

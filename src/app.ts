@@ -36,6 +36,17 @@ app.get('/', (req, res) => {
 // Auth routes
 app.use('/auth', authRouter);
 
+// Error handler global
+app.use((err: any, req: express.Request, res: express.Response, next: NextFunction) => {
+  console.error('Error handler:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({
+    error: err.message || 'Error interno del servidor'
+  });
+});
+
 // Start server
 const server = app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);

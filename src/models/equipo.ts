@@ -43,12 +43,12 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     nombre: {
       type: DataTypes.STRING,
       allowNull: false
-    }
-  }, {
+    }  }, {
     sequelize,
     modelName: 'Equipo',
     tableName: 'equipos',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return Equipo;

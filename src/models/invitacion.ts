@@ -62,12 +62,12 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     fechaEnvio: {
       type: DataTypes.DATE,
       allowNull: false
-    }
-  }, {
+    }  }, {
     sequelize,
     modelName: 'Invitacion',
     tableName: 'invitaciones',
-    timestamps: true
+    timestamps: true,
+    underscored: true
   });
 
   return Invitacion;
