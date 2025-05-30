@@ -1,8 +1,8 @@
-import { QueryInterface, DataTypes } from 'sequelize';
+'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
-export default {
-  async up(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+module.exports = {
+  async up(queryInterface, Sequelize) {
     await queryInterface.createTable('partidos', {
       id: {
         allowNull: false,
@@ -10,7 +10,7 @@ export default {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4
       },
-      deporteId: {
+      deporte_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -18,9 +18,9 @@ export default {
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'RESTRICT'
       },
-      zonaId: {
+      zona_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -28,9 +28,9 @@ export default {
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'RESTRICT'
       },
-      organizadorId: {
+      organizador_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -38,7 +38,7 @@ export default {
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'RESTRICT'
       },
       fecha: {
         type: Sequelize.DATE,
@@ -61,21 +61,22 @@ export default {
         allowNull: false,
         defaultValue: 'pendiente'
       },
-      equipoGanadorId: {
+      equipo_ganador_id: {
         type: Sequelize.UUID,
         allowNull: true
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
-  async down(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+
+  async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('partidos');
   }
 };

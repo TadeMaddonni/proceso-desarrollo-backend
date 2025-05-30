@@ -7,7 +7,7 @@ dotenv.config();
 async function testCrudOperations(): Promise<void> {
   try {
     console.log('📦 Importando models...');
-    const db = await import('./src/models/index.js');
+    const db = await import('../src/models/index.js');
     
     const { 
       Zona, 
@@ -157,7 +157,7 @@ async function testCrudOperations(): Promise<void> {
     throw error;
   } finally {
     console.log('\n🔌 Cerrando conexión...');
-    const db = await import('./src/models/index.js');
+    const db = await import('../src/models/index.js');
     await db.default.sequelize.close();
     console.log('🔌 Conexión cerrada');
   }

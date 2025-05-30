@@ -1,8 +1,8 @@
-import { QueryInterface, DataTypes } from 'sequelize';
+'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
-export default {
-  async up(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+module.exports = {
+  async up(queryInterface, Sequelize) {
     await queryInterface.createTable('usuarios', {
       id: {
         allowNull: false,
@@ -25,9 +25,13 @@ export default {
       },
       nivel: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
+        validate: {
+          min: 1,
+          max: 3
+        }
       },
-      zonaId: {
+      zona_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -35,9 +39,9 @@ export default {
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'RESTRICT'
       },
-      deporteId: {
+      deporte_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -45,19 +49,24 @@ export default {
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'RESTRICT'
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE
-      }
-    });
+      }    });
+
+    // Añadir índices para mejorar el rendimiento
+    await queryInterface.addIndex('usuarios', ['correo'], { unique: true });
+    await queryInterface.addIndex('usuarios', ['zona_id']);
+    await queryInterface.addIndex('usuarios', ['deporte_id']);
   },
-  async down(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+
+  async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('usuarios');
   }
 };
