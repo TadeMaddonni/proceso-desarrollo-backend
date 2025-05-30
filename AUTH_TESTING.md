@@ -135,7 +135,7 @@ Content-Type: application/json
 ```
 
 **Respuesta exitosa (200):**
-
+  
 ```json
 {
   "user": {

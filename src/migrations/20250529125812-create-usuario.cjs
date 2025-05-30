@@ -40,8 +40,7 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'RESTRICT'
-      },
-      deporte_id: {
+      },      deporte_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -50,6 +49,11 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'RESTRICT'
+      },
+      score: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        defaultValue: 50
       },
       created_at: {
         allowNull: false,

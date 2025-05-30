@@ -11,8 +11,11 @@ interface PartidoAttributes {
   direccion: string;
   estado: string;
   equipoGanadorId?: string;
+  tipoEmparejamiento: string;
   createdAt?: Date;
   updatedAt?: Date;
+  nivelMinimo?: number;
+  nivelMaximo?: number;
 }
 
 interface PartidoCreationAttributes extends Omit<PartidoAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
@@ -28,8 +31,11 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     declare duracion: number;
     declare direccion: string;
     declare estado: string;    declare equipoGanadorId?: string;
+    declare tipoEmparejamiento: string;
     declare readonly createdAt: Date;
     declare readonly updatedAt: Date;
+    declare nivelMinimo?: number;
+    declare nivelMaximo?: number;
 
     /**
      * Helper method for defining associations.
@@ -43,7 +49,6 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
       Partido.belongsTo(models.Deporte, { foreignKey: 'deporteId' });
       Partido.hasMany(models.Equipo, { foreignKey: 'partidoId' });
       Partido.hasMany(models.Invitacion, { foreignKey: 'partidoId' });
-      Partido.hasMany(models.Historial, { foreignKey: 'partidoId' });
       Partido.belongsTo(models.Equipo, { foreignKey: 'equipoGanadorId', as: 'equipoGanador' });
     }
   }
@@ -84,13 +89,41 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
       allowNull: false
     },
     estado: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM(
+        'NECESITAMOS_JUGADORES',
+        'ARMADO',
+        'CONFIRMADO',
+        'EN_JUEGO',
+        'FINALIZADO',
+        'CANCELADO'
+      ),
       allowNull: false,
-      defaultValue: 'pendiente'
+      defaultValue: 'NECESITAMOS_JUGADORES',
     },
-    equipoGanadorId: {
-      type: DataTypes.UUID,
-      allowNull: true
+    tipoEmparejamiento: {
+      type: DataTypes.ENUM(
+        'ZONA',
+        'NIVEL',
+        'HISTORIAL'
+      ),
+      allowNull: false,
+      defaultValue: 'ZONA',
+    },
+    nivelMinimo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 1,
+        max: 3
+      }
+    },
+    nivelMaximo: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 1,
+        max: 3
+      }
     }  }, {
     sequelize,
     modelName: 'Partido',

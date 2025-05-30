@@ -57,13 +57,39 @@ module.exports = {
         allowNull: false
       },
       estado: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM(
+          'NECESITAMOS_JUGADORES',
+          'ARMADO',
+          'CONFIRMADO',
+          'EN_JUEGO',
+          'FINALIZADO',
+          'CANCELADO'
+        ),
+        defaultValue: 'NECESITAMOS_JUGADORES',
         allowNull: false,
-        defaultValue: 'pendiente'
       },
       equipo_ganador_id: {
         type: Sequelize.UUID,
         allowNull: true
+      },
+      tipo_emparejamiento: {
+        type: Sequelize.ENUM(
+          'NIVEL',
+          'ZONA',
+          'HISTORIAL'
+        ),
+        allowNull: false,
+        defaultValue: 'ZONA',
+      },
+      nivel_minimo: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        validate: { min: 1, max: 3 }
+      },
+      nivel_maximo: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        validate: { min: 1, max: 3 }
       },
       created_at: {
         allowNull: false,
