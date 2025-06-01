@@ -33,7 +33,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       estado: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('pendiente', 'aceptada', 'cancelada'),
         allowNull: false,
         defaultValue: 'pendiente'
       },

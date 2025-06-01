@@ -51,7 +51,7 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
       allowNull: false
     },
     estado: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM('pendiente', 'aceptada', 'cancelada'),
       allowNull: false,
       defaultValue: 'pendiente'
     },

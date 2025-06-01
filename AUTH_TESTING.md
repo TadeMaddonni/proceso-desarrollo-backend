@@ -72,7 +72,7 @@ Content-Type: application/json
 {
   "user": {
     "id": "uuid-generado",
-    "correo": "usuario@ejemplo.com",
+    "email": "usuario@ejemplo.com",
     "nombre": "Juan Pérez",
     "nivel": 2,
     "zonaId": "uuid-de-zona-valido",
@@ -135,12 +135,12 @@ Content-Type: application/json
 ```
 
 **Respuesta exitosa (200):**
-  
+
 ```json
 {
   "user": {
     "id": 1,
-    "correo": "usuario@ejemplo.com",
+    "email": "usuario@ejemplo.com",
     "createdAt": "2024-01-01T10:00:00.000Z",
     "updatedAt": "2024-01-01T10:00:00.000Z"
   },
@@ -172,7 +172,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 {
   "message": "Acceso autorizado",
   "user": {
-    "correo": "usuario@ejemplo.com",
+    "email": "usuario@ejemplo.com",
     "id": 1,
     "iat": 1640995200,
     "exp": 1641002400
@@ -223,7 +223,7 @@ NODE_ENV=development
 ## 📝 Notas Importantes
 
 - Las contraseñas se hashean automáticamente en el service
-- Los tokens incluyen `id` y `correo` del usuario
+- Los tokens incluyen `id` y `email` del usuario
 - Los errores se manejan de forma consistente
 - La separación de responsabilidades está correctamente implementada
 - **Campos requeridos para registro**: email, password, nombre, zonaId

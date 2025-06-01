@@ -9,14 +9,12 @@ async function runSeed(): Promise<void> {
   console.log('🚀 Iniciando el proceso de seed...');
   try {
     console.log('📦 Importando models...');
-    const db = await import('../models/index.js');
-      const { 
+    const db = await import('../models/index.js');    const { 
       Zona, 
       Deporte, 
       Usuario, 
       Partido, 
-      Equipo, 
-      UsuarioEquipo, 
+      UsuarioPartido, 
       Invitacion, 
       sequelize 
     } = db.default;    // Type assertions for proper model typing
@@ -24,8 +22,7 @@ async function runSeed(): Promise<void> {
     const DeporteModel = Deporte as ModelStatic<Model<any, any>>;
     const UsuarioModel = Usuario as ModelStatic<Model<any, any>>;
     const PartidoModel = Partido as ModelStatic<Model<any, any>>;
-    const EquipoModel = Equipo as ModelStatic<Model<any, any>>;
-    const UsuarioEquipoModel = UsuarioEquipo as ModelStatic<Model<any, any>>;
+    const UsuarioPartidoModel = UsuarioPartido as ModelStatic<Model<any, any>>;
     const InvitacionModel = Invitacion as ModelStatic<Model<any, any>>;
     
     console.log('🔌 Intentando conectar a la base de datos...');
@@ -33,8 +30,7 @@ async function runSeed(): Promise<void> {
     console.log('✅ Conexión exitosa a la base de datos');    // Limpiar datos anteriores en orden correcto (respetando foreign keys)
     console.log('🧹 Limpiando datos anteriores...');
     await InvitacionModel.destroy({ where: {} });
-    await UsuarioEquipoModel.destroy({ where: {} });
-    await EquipoModel.destroy({ where: {} });
+    await UsuarioPartidoModel.destroy({ where: {} });
     await PartidoModel.destroy({ where: {} });
     await UsuarioModel.destroy({ where: {} });
     await DeporteModel.destroy({ where: {} });
@@ -69,7 +65,7 @@ async function runSeed(): Promise<void> {
       
       const usuario = await UsuarioModel.create({
         nombre: nombre,
-        correo: `${nombre.toLowerCase()}.${apellido.toLowerCase()}@email.com`,
+        email: `${nombre.toLowerCase()}.${apellido.toLowerCase()}@email.com`,
         contraseña: hashedPassword, // Contraseña hasheada
         nivel: Math.floor(Math.random() * 3) + 1, // Nivel del 1 al 3 (corregido)
         score: Math.floor(Math.random() * 50) + 50, // Score inicial entre 50 y 100
@@ -99,47 +95,37 @@ async function runSeed(): Promise<void> {
         duracion: 2.0, // 2 horas
         direccion: `Cancha ${i + 1} - ${zonas[i % zonas.length].nombre}`,
         estado: 'NECESITAMOS_JUGADORES', // Usar el valor correcto del enum
+        cantidadJugadores: 10, // Cantidad de jugadores por defecto
         nivelMinimo: 1 + (i % 3), // Nivel mínimo entre 1 y 3
         nivelMaximo: 3, // Nivel máximo siempre 3
         organizadorId: usuarios[i % usuarios.length].id
       }) as any;
       partidos.push(partido);
-    }
-    console.log(`   ✅ Partidos creados: ${partidos.length}`);
+    }    console.log(`   ✅ Partidos creados: ${partidos.length}`);
 
-    console.log('👤 Creando Equipos...');
-    const equipos = [];
-    const nombresEquipos = [
-      'Los Tigres', 'Águilas FC', 'Leones Dorados', 'Tiburones Azules',
-      'Dragones Rojos', 'Lobos Grises', 'Halcones Negros', 'Panteras Verdes'
-    ];    for (let i = 0; i < nombresEquipos.length; i++) {
-      const equipo = await EquipoModel.create({
-        nombre: nombresEquipos[i],
-        partidoId: partidos[i % partidos.length].id
-      }) as any;
-      equipos.push(equipo);
-    }
-    console.log(`   ✅ Equipos creados: ${equipos.length}`);
-
-    console.log('🤝 Creando UsuarioEquipos...');
-    const usuarioEquipos = [];
+    console.log('🤝 Creando UsuarioPartidos...');
+    const usuarioPartidos = [];
     
-    // Asignar 2-3 usuarios por equipo
-    for (let i = 0; i < equipos.length; i++) {
-      const equipo = equipos[i];
-      const miembrosCount = 2 + (i % 2); // 2 o 3 miembros por equipo
+    // Asignar usuarios a partidos con equipos A y B
+    for (let i = 0; i < partidos.length; i++) {
+      const partido = partidos[i];
+      const jugadoresPorPartido = 4; // 2 por cada equipo (A y B)
       
-      for (let j = 0; j < miembrosCount; j++) {
-        const usuarioIndex = (i * miembrosCount + j) % usuarios.length;        const usuarioEquipo = await UsuarioEquipoModel.create({
+      for (let j = 0; j < jugadoresPorPartido; j++) {
+        const usuarioIndex = (i * jugadoresPorPartido + j) % usuarios.length;
+        const equipo = j < 2 ? 'A' : 'B'; // Primeros 2 van al equipo A, los otros 2 al B
+        
+        const usuarioPartido = await UsuarioPartidoModel.create({
           usuarioId: usuarios[usuarioIndex].id,
-          equipoId: equipo.id
+          partidoId: partido.id,
+          equipo: equipo
         }) as any;
-        usuarioEquipos.push(usuarioEquipo);
+        usuarioPartidos.push(usuarioPartido);
       }
     }
-    console.log(`   ✅ UsuarioEquipos creados: ${usuarioEquipos.length}`);    console.log('💌 Creando Invitaciones...');
+    console.log(`   ✅ UsuarioPartidos creados: ${usuarioPartidos.length}`);console.log('💌 Creando Invitaciones...');
     const invitaciones = [];
-    const estadosInvitacion = ['pendiente', 'aceptada', 'rechazada'] as const;
+    const estadosInvitacion = ['pendiente', 'aceptada', 'cancelada'] as const;
 
     for (let i = 0; i < 12; i++) {
       const invitacion = await InvitacionModel.create({
@@ -150,16 +136,13 @@ async function runSeed(): Promise<void> {
         fechaEnvio: new Date(2024, 4, 15 + i) // Mayo 2024
       }) as any;
       invitaciones.push(invitacion);
-    }    console.log(`   ✅ Invitaciones creadas: ${invitaciones.length}`);
-
-    console.log('🎉 ¡Seed ejecutado exitosamente!');
+    }    console.log(`   ✅ Invitaciones creadas: ${invitaciones.length}`);    console.log('🎉 ¡Seed ejecutado exitosamente!');
     console.log('📊 Resumen de datos creados:');
     console.log(`   📍 Zonas: ${zonas.length}`);
     console.log(`   ⚽ Deportes: ${deportes.length}`);
     console.log(`   👥 Usuarios: ${usuarios.length}`);
     console.log(`   🏆 Partidos: ${partidos.length}`);
-    console.log(`   👤 Equipos: ${equipos.length}`);
-    console.log(`   🤝 UsuarioEquipos: ${usuarioEquipos.length}`);
+    console.log(`   🤝 UsuarioPartidos: ${usuarioPartidos.length}`);
     console.log(`   💌 Invitaciones: ${invitaciones.length}`);
 
   } catch (error) {

@@ -3,7 +3,7 @@ import { Model, DataTypes, Sequelize, ModelStatic } from 'sequelize';
 interface UsuarioAttributes {
   id: string;
   nombre: string;
-  correo: string;
+  email: string;
   contraseña: string;
   nivel: number;
   zonaId: string;
@@ -18,7 +18,7 @@ interface UsuarioCreationAttributes extends Omit<UsuarioAttributes, 'id' | 'scor
 export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').DataTypes): ModelStatic<Model<UsuarioAttributes, UsuarioCreationAttributes>> => {  class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implements UsuarioAttributes {
     declare id: string;
     declare nombre: string;
-    declare correo: string;
+    declare email: string;
     declare contraseña: string;
     declare nivel: number;
     declare zonaId: string;
@@ -35,13 +35,18 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
-     */
-    static associate(models: any) {
+     */    static associate(models: any) {
       // define association here
       Usuario.belongsTo(models.Zona, { foreignKey: 'zonaId', as: 'Zona' });
       Usuario.belongsTo(models.Deporte, { foreignKey: 'deporteId', as: 'Deporte' });
       Usuario.hasMany(models.Partido, { foreignKey: 'organizadorId', as: 'partidosOrganizados' });
-      Usuario.belongsToMany(models.Equipo, { through: 'UsuarioEquipo', foreignKey: 'usuarioId' });
+      Usuario.hasMany(models.UsuarioPartido, { foreignKey: 'usuarioId' });
+      Usuario.belongsToMany(models.Partido, { 
+        through: models.UsuarioPartido, 
+        foreignKey: 'usuarioId',
+        otherKey: 'partidoId',
+        as: 'partidos'
+      });
       Usuario.hasMany(models.Invitacion, { foreignKey: 'usuarioId' });
     }
   }
@@ -57,7 +62,7 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
       type: DataTypes.STRING,
       allowNull: false
     },
-    correo: {
+    email: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true

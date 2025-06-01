@@ -51,9 +51,9 @@ export class AuthController {
 
             // Buscar usuario real y verificar contraseña
             const user = await this.authService.login(email, password);
-            if (user && user.id && user.correo) {
+            if (user && user.id && user.email) {
                 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret';
-                const token = jwt.sign({ correo: user.correo, id: user.id }, JWT_SECRET, { expiresIn: '2h' });
+                const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET, { expiresIn: '2h' });
                 res.json({ user, token });
             } else {
                 res.status(401).json({ error: 'Credenciales inválidas' });

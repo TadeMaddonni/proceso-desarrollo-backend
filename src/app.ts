@@ -1,6 +1,9 @@
 import express, { NextFunction } from 'express';
 import { HealthController } from './controllers/health/HealthController.js'; 
 import authRouter from './routes/auth/Auth.js';
+import emparejamientoRouter from './routes/partido/Emparejamiento.js';
+import partidoRouter from './routes/partido/Partido.js';
+import invitacionRouter from './routes/partido/Invitacion.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -36,6 +39,15 @@ app.get('/', (req, res) => {
 // Auth routes
 app.use('/auth', authRouter);
 
+// Partido routes
+app.use('/api/partidos', partidoRouter);
+
+// Emparejamiento routes
+app.use('/api/emparejamiento', emparejamientoRouter);
+
+// Invitacion routes
+app.use('/api/invitaciones', invitacionRouter);
+
 // Error handler global
 app.use((err: any, req: express.Request, res: express.Response, next: NextFunction) => {
   console.error('Error handler:', err);
@@ -58,3 +70,6 @@ server.on('error', (error) => {
 });
 
 console.log('🚀 Starting server...');
+
+// Export para tests
+export default app;

@@ -74,4 +74,12 @@ async function initializeModels(): Promise<DbInterface> {
   return db;
 }
 
+declare global {
+  namespace Express {
+    interface Request {
+      invitacion?: any;
+    }
+  }
+}
+
 export default await initializeModels();

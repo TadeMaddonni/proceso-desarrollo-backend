@@ -100,7 +100,7 @@ async function testCrudOperations(): Promise<void> {
     
     const nuevoUsuario = await Usuario.create({
       nombre: 'Test Usuario',
-      correo: 'test.usuario@test.com',
+      email: 'test.usuario@test.com',
       contraseña: 'test123',
       nivel: 2,
       zonaId: nuevaZona.id,

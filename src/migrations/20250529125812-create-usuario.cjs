@@ -14,7 +14,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      correo: {
+      email: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true
@@ -65,7 +65,7 @@ module.exports = {
       }    });
 
     // Añadir índices para mejorar el rendimiento
-    await queryInterface.addIndex('usuarios', ['correo'], { unique: true });
+    await queryInterface.addIndex('usuarios', ['email'], { unique: true });
     await queryInterface.addIndex('usuarios', ['zona_id']);
     await queryInterface.addIndex('usuarios', ['deporte_id']);
   },

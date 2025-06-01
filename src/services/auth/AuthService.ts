@@ -23,7 +23,7 @@ export class AuthService {
         }
 
         // Verificar si el usuario ya existe
-        const existingUser = await Usuario.findOne({ where: { correo: email } });
+        const existingUser = await Usuario.findOne({ where: { email: email } });
         if (existingUser) {
             throw new Error('El usuario ya existe');
         }
@@ -59,7 +59,7 @@ export class AuthService {
 
         // Crear el usuario
         const newUser = await Usuario.create({
-            correo: email,
+            email: email,
             contraseña: hashedPassword,
             nombre,
             zonaId,
@@ -80,7 +80,7 @@ export class AuthService {
             ? db.Usuario as ModelStatic<Model<any, any>>
             : null;
         if (!Usuario) return null;
-        const usuario = await Usuario.findOne({ where: { correo: email } });
+        const usuario = await Usuario.findOne({ where: { email: email } });
         if (!usuario) return null;
         // Acceder a los datos con get() de Sequelize
         const usuarioData = usuario.get();

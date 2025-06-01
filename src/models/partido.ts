@@ -10,8 +10,9 @@ interface PartidoAttributes {
   duracion: number;
   direccion: string;
   estado: string;
-  equipoGanadorId?: string;
+  equipoGanador?: 'A' | 'B';
   tipoEmparejamiento: string;
+  cantidadJugadores: number;
   createdAt?: Date;
   updatedAt?: Date;
   nivelMinimo?: number;
@@ -20,8 +21,7 @@ interface PartidoAttributes {
 
 interface PartidoCreationAttributes extends Omit<PartidoAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
 
-export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').DataTypes): ModelStatic<Model<PartidoAttributes, PartidoCreationAttributes>> => {
-  class Partido extends Model<PartidoAttributes, PartidoCreationAttributes> implements PartidoAttributes {
+export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').DataTypes): ModelStatic<Model<PartidoAttributes, PartidoCreationAttributes>> => {  class Partido extends Model<PartidoAttributes, PartidoCreationAttributes> implements PartidoAttributes {
     declare id: string;
     declare deporteId: string;
     declare zonaId: string;
@@ -30,8 +30,9 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     declare hora: string;
     declare duracion: number;
     declare direccion: string;
-    declare estado: string;    declare equipoGanadorId?: string;
+    declare estado: string;    declare equipoGanador?: 'A' | 'B';
     declare tipoEmparejamiento: string;
+    declare cantidadJugadores: number;
     declare readonly createdAt: Date;
     declare readonly updatedAt: Date;
     declare nivelMinimo?: number;
@@ -41,15 +42,19 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
-     */
-    static associate(models: any) {
+     */    static associate(models: any) {
       // define association here
       Partido.belongsTo(models.Usuario, { foreignKey: 'organizadorId', as: 'organizador' });
       Partido.belongsTo(models.Zona, { foreignKey: 'zonaId' });
       Partido.belongsTo(models.Deporte, { foreignKey: 'deporteId' });
-      Partido.hasMany(models.Equipo, { foreignKey: 'partidoId' });
+      Partido.hasMany(models.UsuarioPartido, { foreignKey: 'partidoId' });
       Partido.hasMany(models.Invitacion, { foreignKey: 'partidoId' });
-      Partido.belongsTo(models.Equipo, { foreignKey: 'equipoGanadorId', as: 'equipoGanador' });
+      Partido.belongsToMany(models.Usuario, { 
+        through: models.UsuarioPartido, 
+        foreignKey: 'partidoId',
+        otherKey: 'usuarioId',
+        as: 'participantes'
+      });
     }
   }
 
@@ -115,8 +120,7 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
       validate: {
         min: 1,
         max: 3
-      }
-    },
+      }    },
     nivelMaximo: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -124,7 +128,18 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
         min: 1,
         max: 3
       }
-    }  }, {
+    },    equipoGanador: {
+      type: DataTypes.ENUM('A', 'B'),
+      allowNull: true
+    },
+    cantidadJugadores: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 2,
+        max: 50
+      }
+    }}, {
     sequelize,
     modelName: 'Partido',
     tableName: 'partidos',

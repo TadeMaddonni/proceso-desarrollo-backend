@@ -2,7 +2,7 @@
 export interface UsuarioDTO {
   id: string;
   nombre: string;
-  correo: string;
+  email: string;
   nivel: number;
   zonaId: string;
   deporteId?: string;
