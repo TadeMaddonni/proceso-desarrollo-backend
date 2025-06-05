@@ -1,7 +1,8 @@
 import dbPromise from '../../models/index.js';
 import type { PartidoDTO } from '../../DTOs/PartidoDTO.js';
-import type { PartidoCreationDTO, PartidoUpdateDTO, PartidoFinalizarDTO, UnirsePartidoDTO } from '../../dtos/PartidoCreationDTO.js';
+import type { PartidoCreationDTO, PartidoUpdateDTO, PartidoFinalizarDTO, UnirsePartidoDTO } from '../../DTOs/PartidoCreationDTO.js';
 import { EmparejamientoService } from './emparejamiento/EmparejamientoService.js';
+import { EstadoFactory, type EstadoPartidoType } from './estados/EstadoFactory.js';
 
 export class PartidoService {
 
@@ -114,7 +115,6 @@ export class PartidoService {
 
     return this.mapearPartidoConRelacionesADTO(partido);
   }
-
   /**
    * Unir un usuario a un partido
    */
@@ -131,8 +131,7 @@ export class PartidoService {
     const usuarioPartido = await UsuarioPartido.create({
       usuarioId: datosUnirse.usuarioId,
       partidoId: partidoId,
-      equipo: equipoAsignado,
-      fechaUnion: new Date()
+      equipo: equipoAsignado
     });
 
     return {
@@ -140,7 +139,7 @@ export class PartidoService {
       usuarioId: usuarioPartido.usuarioId,
       partidoId: usuarioPartido.partidoId,
       equipo: usuarioPartido.equipo,
-      fechaUnion: usuarioPartido.fechaUnion
+      fechaUnion: usuarioPartido.createdAt
     };
   }
 
@@ -218,7 +217,6 @@ export class PartidoService {
     
     return !estadosNoModificables.includes(partidoData.estado);
   }
-
   /**
    * Obtener participantes de un partido
    */
@@ -231,17 +229,15 @@ export class PartidoService {
       where: { partidoId },
       include: [{
         model: Usuario,
-        attributes: ['id', 'nombre', 'apellido', 'email', 'nivel']
+        attributes: ['id', 'nombre', 'email', 'nivel']
       }],
-      order: [['equipo', 'ASC'], ['fechaUnion', 'ASC']]
-    });
-
-    return participantes.map((participante: any) => ({
+      order: [['equipo', 'ASC'], ['createdAt', 'ASC']]
+    });    return participantes.map((participante: any) => ({
       id: participante.id,
       usuarioId: participante.usuarioId,
       partidoId: participante.partidoId,
       equipo: participante.equipo,
-      fechaUnion: participante.fechaUnion,
+      fechaUnion: participante.createdAt,
       usuario: participante.Usuario
     }));
   }
@@ -350,7 +346,7 @@ export class PartidoService {
         usuarioId: participante.id,
         partidoId: dto.id,
         equipo: participante.usuarioPartido?.equipo,
-        fechaUnion: participante.usuarioPartido?.fechaUnion,
+        fechaUnion: participante.usuarioPartido?.createdAt,
         usuario: {
           id: participante.id,
           nombre: participante.nombre,
@@ -383,24 +379,104 @@ export class PartidoService {
   static async verificarPartidoCompleto(partidoId: string): Promise<boolean> {
     const db = await dbPromise;
     const Partido = db.Partido as any;
-    const Deporte = db.Deporte as any;
 
-    const partido = await Partido.findByPk(partidoId, {
-      include: [
-        {
-          model: Deporte,
-          attributes: ['cantidadJugadores']
-        }
-      ]
-    });
+    const partido = await Partido.findByPk(partidoId);
 
-    if (!partido || !partido.Deporte) {
+    if (!partido) {
       return false;
     }
 
     const participantes = await this.obtenerParticipantes(partidoId);
-    const cantidadNecesaria = partido.Deporte.cantidadJugadores || 0;
+    const cantidadNecesaria = partido.cantidadJugadores || 0;
 
     return participantes.length >= cantidadNecesaria;
+  }
+
+  // ===== MÉTODOS USANDO PATRÓN STATE =====
+
+  /**
+   * Cambiar estado de un partido usando el patrón State
+   */
+  static async cambiarEstadoConValidacion(partidoId: string, nuevoEstado: EstadoPartidoType): Promise<boolean> {
+    const partido = await this.obtenerPartidoPorId(partidoId);
+    if (!partido) {
+      throw new Error('Partido no encontrado');
+    }
+
+    const estadoActual = partido.estado as EstadoPartidoType;
+    
+    // Validar que la transición sea válida
+    if (!EstadoFactory.esTransicionValida(estadoActual, nuevoEstado)) {
+      throw new Error(`Transición no válida de ${estadoActual} a ${nuevoEstado}`);
+    }
+
+    // Crear instancia del estado actual y ejecutar la transición
+    const estadoObj = EstadoFactory.crearEstado(estadoActual);
+    
+    try {
+      switch (nuevoEstado) {
+        case 'CONFIRMADO':
+          estadoObj.confirmar(partido);
+          break;
+        case 'CANCELADO':
+          estadoObj.cancelar(partido);
+          break;
+        case 'EN_JUEGO':
+          estadoObj.iniciar(partido);
+          break;
+        case 'FINALIZADO':
+          estadoObj.finalizar(partido);
+          break;
+        default:
+          throw new Error(`Transición a ${nuevoEstado} no implementada`);
+      }
+
+      // Actualizar en base de datos
+      return await this.actualizarEstadoPartido(partidoId, nuevoEstado);
+    } catch (error) {
+      throw new Error(`Error al cambiar estado: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Verificar si un partido permite invitaciones según su estado
+   */
+  static permiteInvitaciones(estadoPartido: EstadoPartidoType): boolean {
+    const estado = EstadoFactory.crearEstado(estadoPartido);
+    return estado.permiteInvitaciones();
+  }
+
+  /**
+   * Transición automática a "ARMADO" cuando se completa el equipo
+   */
+  static async verificarYTransicionarArmado(partidoId: string): Promise<void> {
+    const partido = await this.obtenerPartidoPorId(partidoId);
+    if (!partido || partido.estado !== 'NECESITAMOS_JUGADORES') {
+      return;
+    }
+
+    const estaCompleto = await this.verificarPartidoCompleto(partidoId);
+    if (estaCompleto) {
+      const estado = EstadoFactory.crearEstado('NECESITAMOS_JUGADORES') as any;
+      if (estado.equipoCompleto) {
+        estado.equipoCompleto(partido);
+        await this.actualizarEstadoPartido(partidoId, 'ARMADO');
+      }
+    }
+  }
+
+  /**
+   * Verificar transiciones automáticas por tiempo (ej: CONFIRMADO -> EN_JUEGO)
+   */
+  static async verificarTransicionesPorTiempo(partidoId: string): Promise<void> {
+    const partido = await this.obtenerPartidoPorId(partidoId);
+    if (!partido || partido.estado !== 'CONFIRMADO') {
+      return;
+    }
+
+    const estado = EstadoFactory.crearEstado('CONFIRMADO') as any;
+    if (estado.esHoraDeIniciar && estado.esHoraDeIniciar(partido)) {
+      await this.cambiarEstadoConValidacion(partidoId, 'EN_JUEGO');
+    }
   }
 }

@@ -43,12 +43,17 @@ const validacionesCrearPartido = [
     .withMessage('La duración es requerida')
     .isFloat({ min: 0.5, max: 8 })
     .withMessage('La duración debe ser entre 0.5 y 8 horas'),
-  
-  body('direccion')
+    body('direccion')
     .notEmpty()
     .withMessage('La dirección es requerida')
     .isLength({ min: 5, max: 255 })
     .withMessage('La dirección debe tener entre 5 y 255 caracteres'),
+  
+  body('cantidadJugadores')
+    .notEmpty()
+    .withMessage('La cantidad de jugadores es requerida')
+    .isInt({ min: 2, max: 22 })
+    .withMessage('La cantidad de jugadores debe ser entre 2 y 22'),
   
   body('tipoEmparejamiento')
     .optional()
@@ -91,6 +96,37 @@ const validacionesFinalizar = [
     .withMessage('El equipo ganador debe ser "A" o "B"')
 ];
 
+// Validaciones para cambiar estado (usando patrón State)
+const validacionesCambiarEstado = [
+  param('id')
+    .isUUID()
+    .withMessage('El ID del partido debe ser un UUID válido'),
+  
+  body('nuevoEstado')
+    .notEmpty()
+    .withMessage('El nuevo estado es requerido')
+    .isIn(['NECESITAMOS_JUGADORES', 'ARMADO', 'CONFIRMADO', 'EN_JUEGO', 'FINALIZADO', 'CANCELADO'])
+    .withMessage('Estado inválido')
+];
+
+// Validaciones para unirse a partido
+const validacionesUnirsePartido = [
+  param('id')
+    .isUUID()
+    .withMessage('El ID del partido debe ser un UUID válido'),
+  
+  body('usuarioId')
+    .notEmpty()
+    .withMessage('El ID del usuario es requerido')
+    .isUUID()
+    .withMessage('El ID del usuario debe ser un UUID válido'),
+  
+  body('equipo')
+    .optional()
+    .isIn(['A', 'B'])
+    .withMessage('El equipo debe ser "A" o "B"')
+];
+
 // Validación para obtener por ID
 const validacionObtenerPorId = [
   param('id')
@@ -122,21 +158,38 @@ router.get(
 // Eliminada la ruta de unirse a partido y sus validaciones relacionadas
 
 router.put(
-  '/:id/estado', 
-  validacionesActualizarEstado,
-  PartidoValidationMiddleware.validarErrores,
-  PartidoValidationMiddleware.validarPartidoExiste,
-  PartidoValidationMiddleware.validarEstado,
-  partidoController.actualizarEstado
-);
-
-router.put(
   '/:id/finalizar', 
   validacionesFinalizar,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
   PartidoValidationMiddleware.validarEquipo,
   partidoController.finalizar
+);
+
+// Rutas que usan el patrón State
+router.put(
+  '/:id/cambiar-estado',
+  validacionesCambiarEstado,
+  PartidoValidationMiddleware.validarErrores,
+  PartidoValidationMiddleware.validarPartidoExiste,
+  partidoController.cambiarEstado
+);
+
+router.get(
+  '/:id/permite-invitaciones',
+  validacionObtenerPorId,
+  PartidoValidationMiddleware.validarErrores,
+  PartidoValidationMiddleware.validarPartidoExiste,
+  partidoController.permiteInvitaciones
+);
+
+// Ruta para unirse directamente a un partido
+router.post(
+  '/:id/unirse',
+  validacionesUnirsePartido,
+  PartidoValidationMiddleware.validarErrores,
+  PartidoValidationMiddleware.validarPartidoExiste,
+  partidoController.unirseAPartido
 );
 
 export default router;
