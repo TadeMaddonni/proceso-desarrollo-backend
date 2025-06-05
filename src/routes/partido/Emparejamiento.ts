@@ -6,7 +6,7 @@ const emparejamientoController = new EmparejamientoController();
 
 // Rutas para emparejamiento
 router.get('/candidatos/:partidoId', emparejamientoController.obtenerCandidatos);
-router.post('/ejecutar', emparejamientoController.ejecutarEmparejamiento);
+router.post('/ejecutar/:partidoId', emparejamientoController.ejecutarEmparejamiento);
 router.put('/estrategia/:partidoId', emparejamientoController.actualizarEstrategia);
 router.get('/estrategias', emparejamientoController.obtenerEstrategias);
 router.get('/estrategias/:tipo', emparejamientoController.obtenerDetalleEstrategia);

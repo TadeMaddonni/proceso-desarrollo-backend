@@ -202,15 +202,19 @@ Obtiene un partido específico con todos sus detalles incluyendo participantes.
 
 ### 4. Ejecutar Emparejamiento
 
-**`POST /api/emparejamiento/ejecutar`**
+**`POST /api/emparejamiento/ejecutar/:partidoId`**
 
 Ejecuta el algoritmo de emparejamiento para encontrar usuarios compatibles y enviarles invitaciones al partido.
+
+#### URL Parameters
+
+- `partidoId` (string): ID del partido para ejecutar el emparejamiento
 
 #### Request Body
 
 ```json
 {
-  "partidoId": "65837a01-69ed-4f16-a495-4dbca9281a90"
+  "tipoEstrategia": "ZONA"
 }
 ```
 

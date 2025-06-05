@@ -158,12 +158,12 @@ Content-Type: application/json
 ### 4.1 Ejecutar Emparejamiento Manual
 
 ```http
-POST {{baseUrl}}/api/emparejamiento/ejecutar
+POST {{baseUrl}}/api/emparejamiento/ejecutar/{{partidoId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "partidoId": "{{partidoId}}"
+  "tipoEstrategia": "ZONA"
 }
 ```
 

@@ -98,14 +98,14 @@ export class EmparejamientoController {
       });
     }
   };
-
   /**
    * Ejecuta emparejamiento con una estrategia específica para un partido
-   * POST /api/emparejamiento/ejecutar
+   * POST /api/emparejamiento/ejecutar/:partidoId
    */
   ejecutarEmparejamiento = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { partidoId, tipoEstrategia } = req.body;
+      const { partidoId } = req.params;
+      const { tipoEstrategia } = req.body;
 
       if (!partidoId || !tipoEstrategia) {
         res.status(400).json({ 
