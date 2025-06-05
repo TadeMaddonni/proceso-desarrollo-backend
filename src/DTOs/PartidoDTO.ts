@@ -30,7 +30,6 @@ export interface PartidoDTO {
   zona?: {
     id: string;
     nombre: string;
-    provincia: string;
   };
   
   participantes?: Array<{

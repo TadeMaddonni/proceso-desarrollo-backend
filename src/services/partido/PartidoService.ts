@@ -1,6 +1,6 @@
 import dbPromise from '../../models/index.js';
 import type { PartidoDTO } from '../../DTOs/PartidoDTO.js';
-import type { PartidoCreationDTO, PartidoUpdateDTO, PartidoFinalizarDTO, UnirsePartidoDTO } from '../../DTOs/PartidoCreationDTO.js';
+import type { PartidoCreationDTO, PartidoUpdateDTO, PartidoFinalizarDTO, UnirsePartidoDTO } from '../../dtos/PartidoCreationDTO.js';
 import { EmparejamientoService } from './emparejamiento/EmparejamientoService.js';
 
 export class PartidoService {
@@ -45,11 +45,14 @@ export class PartidoService {
    * Obtener todos los partidos con sus relaciones
    */
   static async obtenerTodosLosPartidos(): Promise<PartidoDTO[]> {
+    console.log('Obteniendo todos los partidos (service)');
     const db = await dbPromise;
     const Partido = db.Partido as any;
     const Usuario = db.Usuario as any;
     const Deporte = db.Deporte as any;
-    const Zona = db.Zona as any;    const partidos = await Partido.findAll({
+    const Zona = db.Zona as any;    
+    console.log('Partido:', Partido.findAll());
+    const partidos = await Partido.findAll({
       include: [
         {
           model: Usuario,
@@ -62,7 +65,7 @@ export class PartidoService {
         },
         {
           model: Zona,
-          attributes: ['id', 'nombre', 'provincia']
+          attributes: ['id', 'nombre']
         }
       ],
       order: [['fecha', 'ASC'], ['hora', 'ASC']]
@@ -89,10 +92,10 @@ export class PartidoService {
           model: Deporte,
           attributes: ['id', 'nombre']
         },
-        {
-          model: Zona,
-          attributes: ['id', 'nombre']
-        },
+        // {
+        //   model: Zona,
+        //   attributes: ['id', 'nombre']
+        // },
         {
           model: Usuario,
           as: 'participantes',
@@ -339,8 +342,7 @@ export class PartidoService {
     if (partidoData.Zona) {
       dto.zona = {
         id: partidoData.Zona.id,
-        nombre: partidoData.Zona.nombre,
-        provincia: partidoData.Zona.provincia
+        nombre: partidoData.Zona.nombre
       };
     }    if (partidoData.participantes) {
       dto.participantes = partidoData.participantes.map((participante: any) => ({

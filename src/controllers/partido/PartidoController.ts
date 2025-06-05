@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PartidoService } from '../../services/partido/PartidoService.js';
-import type { PartidoCreationDTO, UnirsePartidoDTO, PartidoFinalizarDTO } from '../../DTOs/PartidoCreationDTO.js';
+import type { PartidoCreationDTO, UnirsePartidoDTO, PartidoFinalizarDTO } from '../../dtos/PartidoCreationDTO.js';
 
 export class PartidoController {
 
@@ -34,8 +34,10 @@ export class PartidoController {
    * GET /api/partidos
    */
   obtenerTodos = async (req: Request, res: Response): Promise<void> => {
+    console.log('Obteniendo todos los partidos');
     try {
       const partidos = await PartidoService.obtenerTodosLosPartidos();
+      console.log('Partidos obtenidos:', partidos);
 
       res.status(200).json({
         success: true,
