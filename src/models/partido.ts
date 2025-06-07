@@ -13,6 +13,7 @@ interface PartidoAttributes {
   equipoGanador?: 'A' | 'B';
   tipoEmparejamiento: string;
   cantidadJugadores: number;
+  jugadoresConfirmados: number;
   createdAt?: Date;
   updatedAt?: Date;
   nivelMinimo?: number;
@@ -33,6 +34,7 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     declare estado: string;    declare equipoGanador?: 'A' | 'B';
     declare tipoEmparejamiento: string;
     declare cantidadJugadores: number;
+    declare jugadoresConfirmados: number;
     declare readonly createdAt: Date;
     declare readonly updatedAt: Date;
     declare nivelMinimo?: number;
@@ -131,13 +133,19 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     },    equipoGanador: {
       type: DataTypes.ENUM('A', 'B'),
       allowNull: true
-    },
-    cantidadJugadores: {
+    },    cantidadJugadores: {
       type: DataTypes.INTEGER,
       allowNull: false,
       validate: {
         min: 2,
         max: 50
+      }
+    },    jugadoresConfirmados: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      validate: {
+        min: 1
       }
     }}, {
     sequelize,

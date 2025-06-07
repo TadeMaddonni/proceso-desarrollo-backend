@@ -127,6 +127,19 @@ const validacionesUnirsePartido = [
     .withMessage('El equipo debe ser "A" o "B"')
 ];
 
+// Validaciones para abandonar partido
+const validacionesAbandonarPartido = [
+  param('id')
+    .isUUID()
+    .withMessage('El ID del partido debe ser un UUID válido'),
+  
+  body('usuarioId')
+    .notEmpty()
+    .withMessage('El ID del usuario es requerido')
+    .isUUID()
+    .withMessage('El ID del usuario debe ser un UUID válido')
+];
+
 // Validación para obtener por ID
 const validacionObtenerPorId = [
   param('id')
@@ -190,6 +203,15 @@ router.post(
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
   partidoController.unirseAPartido
+);
+
+// Ruta para abandonar un partido
+router.delete(
+  '/:id/abandonar',
+  validacionesAbandonarPartido,
+  PartidoValidationMiddleware.validarErrores,
+  PartidoValidationMiddleware.validarPartidoExiste,
+  partidoController.abandonarPartido
 );
 
 export default router;

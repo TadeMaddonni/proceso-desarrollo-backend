@@ -315,4 +315,64 @@ export class PartidoController {
       });
     }
   };
+
+  /**
+   * Abandonar un partido
+   * DELETE /api/partidos/:id/abandonar
+   */
+  abandonarPartido = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { usuarioId } = req.body;
+
+      if (!usuarioId) {
+        res.status(400).json({
+          success: false,
+          message: 'El ID del usuario es requerido'
+        });
+        return;
+      }
+
+      // Verificar que el partido existe
+      const partido = await PartidoService.obtenerPartidoPorId(id);
+      if (!partido) {
+        res.status(404).json({
+          success: false,
+          message: 'Partido no encontrado'
+        });
+        return;
+      }      // Verificar que el partido esté en un estado que permita abandonar
+      const estadosPermitidos = ['NECESITAMOS_JUGADORES', 'ARMADO'];
+      if (!estadosPermitidos.includes(partido.estado)) {
+        res.status(400).json({
+          success: false,
+          message: `No es posible abandonar el partido en estado ${partido.estado}. Solo se puede abandonar en estados: NECESITAMOS_JUGADORES o ARMADO`
+        });
+        return; 
+      }
+
+      // Remover usuario del partido
+      const removido = await PartidoService.removerUsuarioDePartido(id, usuarioId);
+
+      if (!removido) {
+        res.status(400).json({
+          success: false,
+          message: 'El usuario no está participando en este partido'
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Has abandonado el partido exitosamente'
+      });
+
+    } catch (error) {
+      console.error('Error al abandonar partido:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor al abandonar el partido'
+      });
+    }
+  };
 }

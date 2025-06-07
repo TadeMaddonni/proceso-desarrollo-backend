@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { InvitacionController } from '../../controllers/partido/InvitacionController.js';
 import { InvitacionValidationMiddleware } from '../../middleware/invitacionValidationMiddleware.js';
+import { authenticateJWT } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 const invitacionController = new InvitacionController();
@@ -12,8 +13,19 @@ function wrapAsync(fn: any) {
   };
 }
 
+// Middleware opcional de autenticación (no falla si no hay token)
+function optionalAuth(req: any, res: any, next: any): void {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    authenticateJWT(req, res, next);
+    return;
+  }
+  next();
+}
+
 // Aceptar invitación
 router.put('/:id/aceptar',
+  optionalAuth,
   wrapAsync(InvitacionValidationMiddleware.validarInvitacionExiste),
   wrapAsync(InvitacionValidationMiddleware.validarUsuarioInvitado),
   wrapAsync(InvitacionValidationMiddleware.validarEstadoPendiente),
@@ -22,6 +34,7 @@ router.put('/:id/aceptar',
 
 // Cancelar invitación
 router.put('/:id/cancelar',
+  optionalAuth,
   wrapAsync(InvitacionValidationMiddleware.validarInvitacionExiste),
   wrapAsync(InvitacionValidationMiddleware.validarUsuarioInvitado),
   wrapAsync(InvitacionValidationMiddleware.validarEstadoPendiente),

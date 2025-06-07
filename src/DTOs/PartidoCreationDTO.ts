@@ -5,9 +5,9 @@ export interface PartidoCreationDTO {
   organizadorId: string;
   fecha: Date;
   hora: string;
-  duracion: number;
-  direccion: string;
+  duracion: number;  direccion: string;
   cantidadJugadores: number;
+  jugadoresConfirmados?: number;
   tipoEmparejamiento?: 'ZONA' | 'NIVEL' | 'HISTORIAL';
   nivelMinimo?: number;
   nivelMaximo?: number;
@@ -19,9 +19,9 @@ export interface PartidoUpdateDTO {
   zonaId?: string;
   fecha?: Date;
   hora?: string;
-  duracion?: number;
-  direccion?: string;
+  duracion?: number;  direccion?: string;
   cantidadJugadores?: number;
+  jugadoresConfirmados?: number;
   estado?: 'NECESITAMOS_JUGADORES' | 'ARMADO' | 'CONFIRMADO' | 'EN_JUEGO' | 'FINALIZADO' | 'CANCELADO';
   tipoEmparejamiento?: 'ZONA' | 'NIVEL' | 'HISTORIAL';
   nivelMinimo?: number;

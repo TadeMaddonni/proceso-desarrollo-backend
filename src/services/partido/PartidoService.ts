@@ -3,6 +3,7 @@ import type { PartidoDTO } from '../../DTOs/PartidoDTO.js';
 import type { PartidoCreationDTO, PartidoUpdateDTO, PartidoFinalizarDTO, UnirsePartidoDTO } from '../../DTOs/PartidoCreationDTO.js';
 import { EmparejamientoService } from './emparejamiento/EmparejamientoService.js';
 import { EstadoFactory, type EstadoPartidoType } from './estados/EstadoFactory.js';
+import { ScoreService } from '../usuario/ScoreService.js';
 
 export class PartidoService {
 
@@ -114,13 +115,13 @@ export class PartidoService {
     }
 
     return this.mapearPartidoConRelacionesADTO(partido);
-  }
-  /**
+  }  /**
    * Unir un usuario a un partido
    */
   static async unirUsuarioAPartido(partidoId: string, datosUnirse: UnirsePartidoDTO): Promise<any> {
     const db = await dbPromise;
     const UsuarioPartido = db.UsuarioPartido as any;
+    const Partido = db.Partido as any;
 
     // Si no se especifica equipo, auto-asignar balanceando
     let equipoAsignado = datosUnirse.equipo;
@@ -128,11 +129,21 @@ export class PartidoService {
       equipoAsignado = await this.autoAsignarEquipo(partidoId);
     }
 
+    // Crear la relación usuario-partido
     const usuarioPartido = await UsuarioPartido.create({
       usuarioId: datosUnirse.usuarioId,
       partidoId: partidoId,
       equipo: equipoAsignado
-    });
+    });    // Incrementar jugadoresConfirmados en el partido
+    await Partido.increment('jugadoresConfirmados', {
+      where: { id: partidoId }
+    });    // Verificar si se alcanzó la cantidad de jugadores requerida
+    const partidoActualizado = await Partido.findByPk(partidoId);
+    if (partidoActualizado && 
+        partidoActualizado.jugadoresConfirmados >= partidoActualizado.cantidadJugadores &&
+        partidoActualizado.estado === 'NECESITAMOS_JUGADORES') {
+      await this.actualizarEstadoPartido(partidoId, 'ARMADO');
+    }
 
     return {
       id: usuarioPartido.id,
@@ -160,7 +171,6 @@ export class PartidoService {
 
     return rowsUpdated > 0;
   }
-
   /**
    * Finalizar un partido
    */
@@ -178,6 +188,16 @@ export class PartidoService {
     }
 
     const [rowsUpdated] = await Partido.update(updateData, { where: { id } });
+
+    // Si se actualizó el partido y hay un equipo ganador, actualizar scores
+    if (rowsUpdated > 0) {
+      try {
+        await ScoreService.actualizarScoresPartidoFinalizado(id, datos.equipoGanador || null);
+      } catch (error) {
+        console.error('Error al actualizar scores del partido:', error);
+        // No fallar la finalización del partido si hay error en scores
+      }
+    }
 
     return rowsUpdated > 0;
   }
@@ -269,7 +289,6 @@ export class PartidoService {
     // Asignar al equipo con menos jugadores
     return conteos.equipoA <= conteos.equipoB ? 'A' : 'B';
   }
-
   /**
    * Mapear entidad Partido a DTO
    */
@@ -288,6 +307,7 @@ export class PartidoService {
       estado: partidoData.estado,
       equipoGanador: partidoData.equipoGanador,
       cantidadJugadores: partidoData.cantidadJugadores,
+      jugadoresConfirmados: partidoData.jugadoresConfirmados,
       tipoEmparejamiento: partidoData.tipoEmparejamiento,
       nivelMinimo: partidoData.nivelMinimo,
       nivelMaximo: partidoData.nivelMaximo,
@@ -295,7 +315,6 @@ export class PartidoService {
       updatedAt: partidoData.updatedAt
     };
   }
-
   /**
    * Mapear entidad Partido con relaciones a DTO
    */
@@ -314,12 +333,13 @@ export class PartidoService {
       estado: partidoData.estado,
       equipoGanador: partidoData.equipoGanador,
       cantidadJugadores: partidoData.cantidadJugadores,
+      jugadoresConfirmados: partidoData.jugadoresConfirmados,
       tipoEmparejamiento: partidoData.tipoEmparejamiento,
       nivelMinimo: partidoData.nivelMinimo,
       nivelMaximo: partidoData.nivelMaximo,
       createdAt: partidoData.createdAt,
       updatedAt: partidoData.updatedAt
-    };    // Agregar relaciones si están presentes
+    };// Agregar relaciones si están presentes
     if (partidoData.organizador) {
       dto.organizador = {
         id: partidoData.organizador.id,
@@ -448,14 +468,11 @@ export class PartidoService {
 
   /**
    * Transición automática a "ARMADO" cuando se completa el equipo
-   */
-  static async verificarYTransicionarArmado(partidoId: string): Promise<void> {
+   */  static async verificarYTransicionarArmado(partidoId: string): Promise<void> {
     const partido = await this.obtenerPartidoPorId(partidoId);
     if (!partido || partido.estado !== 'NECESITAMOS_JUGADORES') {
       return;
-    }
-
-    const estaCompleto = await this.verificarPartidoCompleto(partidoId);
+    }    const estaCompleto = await this.verificarPartidoCompleto(partidoId);
     if (estaCompleto) {
       const estado = EstadoFactory.crearEstado('NECESITAMOS_JUGADORES') as any;
       if (estado.equipoCompleto) {
@@ -478,5 +495,42 @@ export class PartidoService {
     if (estado.esHoraDeIniciar && estado.esHoraDeIniciar(partido)) {
       await this.cambiarEstadoConValidacion(partidoId, 'EN_JUEGO');
     }
+  }
+
+  /**
+   * Remover un usuario de un partido
+   */
+  static async removerUsuarioDePartido(partidoId: string, usuarioId: string): Promise<boolean> {
+    const db = await dbPromise;
+    const UsuarioPartido = db.UsuarioPartido as any;
+    const Partido = db.Partido as any;
+
+    // Buscar la relación usuario-partido
+    const usuarioPartido = await UsuarioPartido.findOne({
+      where: { 
+        usuarioId: usuarioId,
+        partidoId: partidoId 
+      }
+    });
+
+    if (!usuarioPartido) {
+      return false; // No está en el partido
+    }
+
+    // Eliminar la relación usuario-partido
+    await usuarioPartido.destroy();
+
+    // Decrementar jugadoresConfirmados en el partido
+    await Partido.decrement('jugadoresConfirmados', {
+      where: { id: partidoId }
+    });    // Verificar si el partido ya no tiene suficientes jugadores y revertir estado
+    const partidoActualizado = await Partido.findByPk(partidoId);
+    if (partidoActualizado && 
+        partidoActualizado.jugadoresConfirmados < partidoActualizado.cantidadJugadores &&
+        partidoActualizado.estado === 'ARMADO') {
+      await this.actualizarEstadoPartido(partidoId, 'NECESITAMOS_JUGADORES');
+    }
+
+    return true;
   }
 }

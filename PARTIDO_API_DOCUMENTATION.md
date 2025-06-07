@@ -78,6 +78,7 @@ Crea un nuevo partido deportivo.
   "duracion": 2,
   "direccion": "Cancha Nueva Test - Palermo",
   "cantidadJugadores": 10,
+  "jugadoresConfirmados": 1,
   "tipoEmparejamiento": "ZONA",
   "nivelMinimo": 1,
   "nivelMaximo": 3
@@ -102,6 +103,7 @@ Crea un nuevo partido deportivo.
     "equipoGanador": null,
     "tipoEmparejamiento": "ZONA",
     "cantidadJugadores": 10,
+    "jugadoresConfirmados": 1,
     "nivelMinimo": 1,
     "nivelMaximo": 3,
     "createdAt": "2025-05-31T19:34:32.624Z",
@@ -135,6 +137,7 @@ Obtiene la lista completa de partidos con información de organizador, deporte y
       "equipoGanador": null,
       "tipoEmparejamiento": "ZONA",
       "cantidadJugadores": 10,
+      "jugadoresConfirmados": 1,
       "nivelMinimo": 1,
       "nivelMaximo": 3,
       "organizador": {
@@ -180,6 +183,7 @@ Obtiene un partido específico con todos sus detalles incluyendo participantes.
     "equipoGanador": null,
     "tipoEmparejamiento": "ZONA",
     "cantidadJugadores": 10,
+    "jugadoresConfirmados": 1,
     "nivelMinimo": 1,
     "nivelMaximo": 3,
     "organizador": {
@@ -299,8 +303,8 @@ export interface PartidoCreationDTO {
   fecha: Date; // Fecha del partido (ISO 8601)
   hora: string; // Hora del partido (HH:MM)
   duracion: number; // Duración en horas (0.5 - 8)
-  direccion: string; // Dirección de la cancha
-  cantidadJugadores: number; // Cantidad de jugadores (2-50)
+  direccion: string; // Dirección de la cancha  cantidadJugadores: number; // Cantidad de jugadores (2-50)
+  jugadoresConfirmados?: number; // Jugadores que confirmaron asistencia (1-cantidadJugadores)
   tipoEmparejamiento?: "ZONA" | "NIVEL" | "HISTORIAL";
   nivelMinimo?: number; // Nivel mínimo (1-3)
   nivelMaximo?: number; // Nivel máximo (1-3)
@@ -318,6 +322,7 @@ export interface PartidoUpdateDTO {
   duracion?: number;
   direccion?: string;
   cantidadJugadores?: number; // Cantidad de jugadores (2-50)
+  jugadoresConfirmados?: number; // Jugadores que confirmaron asistencia (1-cantidadJugadores)
   estado?:
     | "NECESITAMOS_JUGADORES"
     | "ARMADO"
@@ -396,15 +401,14 @@ export interface PartidoFinalizarDTO {
 ```bash
 # 1. Crear un partido
 curl -X POST http://localhost:3000/api/partidos \
-  -H "Content-Type: application/json" \
-  -d '{
+  -H "Content-Type: application/json" \  -d '{
     "deporteId": "9d120442-f856-4cef-8560-1d4dc2c1e8d2",
     "zonaId": "d6e8560a-b709-4d28-a096-11a2a7641c2b",
-    "organizadorId": "2655ddee-4939-42b1-b72e-5009fb902199",
-    "fecha": "2025-12-25",    "hora": "19:00",
+    "organizadorId": "2655ddee-4939-42b1-b72e-5009fb902199",    "fecha": "2025-12-25",    "hora": "19:00",
     "duracion": 2,
     "direccion": "Cancha Nueva Test - Palermo",
     "cantidadJugadores": 10,
+    "jugadoresConfirmados": 1,
     "tipoEmparejamiento": "ZONA",
     "nivelMinimo": 1,
     "nivelMaximo": 3
@@ -446,6 +450,7 @@ $body = @{
     duracion = 2
     direccion = "Cancha Nueva Test - Palermo"
     cantidadJugadores = 10
+    jugadoresConfirmados = 0
     tipoEmparejamiento = "ZONA"
     nivelMinimo = 1
     nivelMaximo = 3

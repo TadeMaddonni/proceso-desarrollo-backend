@@ -64,6 +64,7 @@ export class EmparejamientoController {
         equipoGanador: partidoData.equipoGanador,
         tipoEmparejamiento: partidoData.tipoEmparejamiento,
         cantidadJugadores: partidoData.cantidadJugadores,
+        jugadoresConfirmados: partidoData.jugadoresConfirmados,
         nivelMinimo: partidoData.nivelMinimo,
         nivelMaximo: partidoData.nivelMaximo
       };
@@ -156,6 +157,7 @@ export class EmparejamientoController {
         equipoGanador: partidoData.equipoGanador,
         tipoEmparejamiento: tipoEstrategia, // Usar la estrategia solicitada
         cantidadJugadores: partidoData.cantidadJugadores,
+        jugadoresConfirmados: partidoData.jugadoresConfirmados,
         nivelMinimo: partidoData.nivelMinimo,
         nivelMaximo: partidoData.nivelMaximo
       };

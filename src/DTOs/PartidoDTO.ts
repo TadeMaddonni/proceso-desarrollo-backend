@@ -9,9 +9,9 @@ export interface PartidoDTO {
   duracion: number;
   direccion: string;
   estado: string;
-  equipoGanador?: 'A' | 'B';
-  tipoEmparejamiento: string;
+  equipoGanador?: 'A' | 'B';  tipoEmparejamiento: string;
   cantidadJugadores: number;
+  jugadoresConfirmados: number;
   createdAt?: Date;
   updatedAt?: Date;
   nivelMinimo?: number;

@@ -4,6 +4,8 @@ import authRouter from './routes/auth/Auth.js';
 import emparejamientoRouter from './routes/partido/Emparejamiento.js';
 import partidoRouter from './routes/partido/Partido.js';
 import invitacionRouter from './routes/partido/Invitacion.js';
+import deporteRouter from './routes/deporte/Deporte.js';
+import zonaRouter from './routes/zona/Zona.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -41,6 +43,12 @@ app.use('/auth', authRouter);
 
 // Partido routes
 app.use('/api/partidos', partidoRouter);
+
+// Deporte routes
+app.use('/api/deportes', deporteRouter);
+
+// Zona routes
+app.use('/api/zonas', zonaRouter);
 
 // Emparejamiento routes
 app.use('/api/emparejamiento', emparejamientoRouter);
