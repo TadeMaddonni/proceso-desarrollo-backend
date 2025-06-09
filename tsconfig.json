@@ -34,6 +34,6 @@
     "experimentalSpecifierResolution": "node",
     "transpileOnly": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/test-score-real.ts", "tests/test-score-system.ts", "tests/verificar-estructura.ts", "tests/test-integration.ts"],
   "exclude": ["node_modules", "dist", "tests"]
 }

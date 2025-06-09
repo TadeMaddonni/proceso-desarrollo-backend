@@ -4,8 +4,28 @@ import type { PartidoCreationDTO, PartidoUpdateDTO, PartidoFinalizarDTO, UnirseP
 import { EmparejamientoService } from './emparejamiento/EmparejamientoService.js';
 import { EstadoFactory, type EstadoPartidoType } from './estados/EstadoFactory.js';
 import { ScoreService } from '../usuario/ScoreService.js';
+import { PartidoSubject } from '../../observers/PartidoSubject.js';
 
 export class PartidoService {
+  // Instancia única del subject para el patrón Observer
+  private static subject: PartidoSubject = new PartidoSubject();
+
+  // Inicializar observadores (se ejecuta al cargar la clase)
+  static {
+    this.inicializarObservadores();
+  }
+
+  /**
+   * Inicializar los observadores del partido
+   */
+  private static async inicializarObservadores(): Promise<void> {
+    const { NotificacionObserver } = await import('../../observers/NotificacionObserver.js');
+    const { InvitacionObserver } = await import('../../observers/InvitacionObserver.js');
+    
+    this.subject.agregarObservador(new NotificacionObserver());
+    this.subject.agregarObservador(new InvitacionObserver());
+    console.log('[PartidoService] Observadores inicializados');
+  }
 
   /**
    * Crear un nuevo partido
@@ -153,13 +173,19 @@ export class PartidoService {
       fechaUnion: usuarioPartido.createdAt
     };
   }
-
   /**
    * Actualizar el estado de un partido
    */
   static async actualizarEstadoPartido(id: string, nuevoEstado: string): Promise<boolean> {
     const db = await dbPromise;
     const Partido = db.Partido as any;
+
+    // Obtener el estado anterior del partido antes de actualizarlo
+    const partidoAntes = await this.obtenerPartidoPorId(id);
+    if (!partidoAntes) {
+      return false;
+    }
+    const estadoAnterior = partidoAntes.estado;
 
     const [rowsUpdated] = await Partido.update(
       { 
@@ -169,14 +195,33 @@ export class PartidoService {
       { where: { id } }
     );
 
+    // Si se actualizó correctamente y cambió el estado, notificar observadores
+    if (rowsUpdated > 0 && estadoAnterior !== nuevoEstado) {
+      try {
+        const partidoActualizado = await this.obtenerPartidoPorId(id);
+        if (partidoActualizado) {
+          await this.subject.notificarObservadores(partidoActualizado, estadoAnterior, nuevoEstado);
+        }
+      } catch (error) {
+        console.error('[PartidoService] Error al notificar observadores:', error);
+        // No fallar la actualización del estado si hay error en notificaciones
+      }
+    }
+
     return rowsUpdated > 0;
-  }
-  /**
+  }  /**
    * Finalizar un partido
    */
   static async finalizarPartido(id: string, datos: PartidoFinalizarDTO): Promise<boolean> {
     const db = await dbPromise;
     const Partido = db.Partido as any;
+
+    // Obtener el estado anterior del partido antes de finalizarlo
+    const partidoAntes = await this.obtenerPartidoPorId(id);
+    if (!partidoAntes) {
+      return false;
+    }
+    const estadoAnterior = partidoAntes.estado;
 
     const updateData: any = { 
       estado: 'FINALIZADO',
@@ -196,6 +241,19 @@ export class PartidoService {
       } catch (error) {
         console.error('Error al actualizar scores del partido:', error);
         // No fallar la finalización del partido si hay error en scores
+      }
+
+      // Notificar observadores sobre el cambio de estado
+      if (estadoAnterior !== 'FINALIZADO') {
+        try {
+          const partidoFinalizado = await this.obtenerPartidoPorId(id);
+          if (partidoFinalizado) {
+            await this.subject.notificarObservadores(partidoFinalizado, estadoAnterior, 'FINALIZADO');
+          }
+        } catch (error) {
+          console.error('[PartidoService] Error al notificar observadores en finalización:', error);
+          // No fallar la finalización si hay error en notificaciones
+        }
       }
     }
 
@@ -377,7 +435,6 @@ export class PartidoService {
 
     return dto;
   }
-
   /**
    * Validar transición de estado
    */
@@ -385,7 +442,7 @@ export class PartidoService {
     const transicionesValidas: { [key: string]: string[] } = {
       'NECESITAMOS_JUGADORES': ['ARMADO', 'CANCELADO'],
       'ARMADO': ['CONFIRMADO', 'CANCELADO', 'NECESITAMOS_JUGADORES'],
-      'CONFIRMADO': ['EN_JUEGO', 'CANCELADO'],
+      'CONFIRMADO': ['EN_JUEGO'],
       'EN_JUEGO': ['FINALIZADO'],
       'FINALIZADO': [],
       'CANCELADO': []

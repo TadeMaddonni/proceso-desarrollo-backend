@@ -1,5 +1,5 @@
-import dbPromise from '../models/index.js';
-import { ScoreService } from '../services/usuario/ScoreService.js';
+import dbPromise from '../src/models/index.js';
+import { ScoreService } from '../src/services/usuario/ScoreService.js';
 
 /**
  * Script para probar el sistema de scores

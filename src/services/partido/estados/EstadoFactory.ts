@@ -64,7 +64,6 @@ export class EstadoFactory {
       'CANCELADO'
     ];
   }
-
   /**
    * Validar si una transición de estado es válida
    */
@@ -72,7 +71,7 @@ export class EstadoFactory {
     const transicionesValidas: Record<EstadoPartidoType, EstadoPartidoType[]> = {
       'NECESITAMOS_JUGADORES': ['ARMADO', 'CANCELADO'],
       'ARMADO': ['CONFIRMADO', 'CANCELADO', 'NECESITAMOS_JUGADORES'],
-      'CONFIRMADO': ['EN_JUEGO', 'CANCELADO'],
+      'CONFIRMADO': ['EN_JUEGO'],
       'EN_JUEGO': ['FINALIZADO'],
       'FINALIZADO': [], // Estado final, no permite transiciones
       'CANCELADO': []   // Estado final, no permite transiciones

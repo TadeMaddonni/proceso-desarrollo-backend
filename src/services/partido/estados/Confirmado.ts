@@ -10,10 +10,9 @@ export class Confirmado extends EstadoPartido {
   confirmar(partido: PartidoDTO): void {
     throw new Error('El partido ya está confirmado');
   }
-
   cancelar(partido: PartidoDTO): void {
-    // Puede ser cancelado por el organizador antes del inicio
-    partido.estado = 'CANCELADO';
+    // Un partido confirmado NO puede ser cancelado
+    throw new Error('No se puede cancelar un partido que ya está confirmado');
   }
 
   iniciar(partido: PartidoDTO): void {

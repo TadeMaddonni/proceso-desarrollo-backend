@@ -1,5 +1,5 @@
-import dbPromise from '../models/index.js';
-import { PartidoService } from '../services/partido/PartidoService.js';
+import dbPromise from '../src/models/index.js';
+import { PartidoService } from '../src/services/partido/PartidoService.js';
 
 async function testPartidoFinalizacionConScores() {
   try {

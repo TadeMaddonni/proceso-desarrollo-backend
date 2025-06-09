@@ -406,7 +406,7 @@ Content-Type: application/json
 | ----------------------- | ----------------------- |
 | `NECESITAMOS_JUGADORES` | → ARMADO, CANCELADO     |
 | `ARMADO`                | → CONFIRMADO, CANCELADO |
-| `CONFIRMADO`            | → EN_JUEGO, CANCELADO   |
+| `CONFIRMADO`            | → EN_JUEGO              |
 | `EN_JUEGO`              | → FINALIZADO            |
 | `FINALIZADO`            | Sin transiciones        |
 | `CANCELADO`             | Sin transiciones        |
