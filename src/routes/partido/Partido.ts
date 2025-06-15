@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { PartidoController } from '../../controllers/partido/PartidoController.js';
 import { PartidoValidationMiddleware } from '../../middleware/partidoValidationMiddleware.js';
+import { authenticateJWT, optionalAuth } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 const partidoController = new PartidoController();
@@ -150,6 +151,7 @@ const validacionObtenerPorId = [
 // Rutas para partidos con middlewares de validación
 router.post(
   '/', 
+  authenticateJWT,
   validacionesCrearPartido,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarEntidadesRelacionadas,
@@ -158,10 +160,11 @@ router.post(
   partidoController.crear
 );
 
-router.get('/', partidoController.obtenerTodos);
+router.get('/', optionalAuth, partidoController.obtenerTodos);
 
 router.get(
   '/:id', 
+  optionalAuth,
   validacionObtenerPorId,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
@@ -172,6 +175,7 @@ router.get(
 
 router.put(
   '/:id/finalizar', 
+  authenticateJWT,
   validacionesFinalizar,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
@@ -182,6 +186,7 @@ router.put(
 // Rutas que usan el patrón State
 router.put(
   '/:id/cambiar-estado',
+  authenticateJWT,
   validacionesCambiarEstado,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
@@ -190,6 +195,7 @@ router.put(
 
 router.get(
   '/:id/permite-invitaciones',
+  optionalAuth,
   validacionObtenerPorId,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
@@ -199,6 +205,7 @@ router.get(
 // Ruta para unirse directamente a un partido
 router.post(
   '/:id/unirse',
+  authenticateJWT,
   validacionesUnirsePartido,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
@@ -208,6 +215,7 @@ router.post(
 // Ruta para abandonar un partido
 router.delete(
   '/:id/abandonar',
+  authenticateJWT,
   validacionesAbandonarPartido,
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,

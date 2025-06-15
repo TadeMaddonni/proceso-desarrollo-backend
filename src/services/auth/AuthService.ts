@@ -1,6 +1,10 @@
 import dbPromise from '../../models/index.js';
 import bcrypt from 'bcryptjs';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { ModelStatic, Model } from 'sequelize';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'default_secret';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 export class AuthService {
     getStatus() {
@@ -55,9 +59,7 @@ export class AuthService {
         }
 
         // Hashear la contraseña
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Crear el usuario
+        const hashedPassword = await bcrypt.hash(password, 10);        // Crear el usuario
         const newUser = await Usuario.create({
             email: email,
             contraseña: hashedPassword,
@@ -67,10 +69,17 @@ export class AuthService {
             nivel
         });
 
-        // Retornar datos del usuario sin la contraseña
+        // Retornar datos del usuario sin la contraseña y generar token
         const userData = newUser.get();
         const { contraseña, ...userWithoutPassword } = userData;
-        return userWithoutPassword;
+        
+        // Generar token JWT
+        const token = this.generateToken(userWithoutPassword);
+        
+        return {
+            user: userWithoutPassword,
+            token
+        };
     }
 
     async login(email: string, password: string) {
@@ -84,9 +93,61 @@ export class AuthService {
         if (!usuario) return null;
         // Acceder a los datos con get() de Sequelize
         const usuarioData = usuario.get();
-        const match = await bcrypt.compare(password, usuarioData.contraseña);
-        if (!match) return null;
+        const match = await bcrypt.compare(password, usuarioData.contraseña);        if (!match) return null;
+        
         const { contraseña, ...userData } = usuarioData;
-        return userData;
+        
+        // Generar token JWT
+        const token = this.generateToken(userData);
+        
+        return {
+            user: userData,
+            token
+        };
+    }
+
+    /**
+     * Generar token JWT
+     */
+    private generateToken(userData: any): string {
+        const payload = {
+            id: userData.id,
+            email: userData.email,
+            nombre: userData.nombre,
+            zonaId: userData.zonaId,
+            deporteId: userData.deporteId
+        };
+        
+        return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
+    }
+
+    /**
+     * Verificar token JWT
+     */
+    static verifyToken(token: string): any {
+        try {
+            return jwt.verify(token, JWT_SECRET);
+        } catch (error) {
+            throw new Error('Token inválido o expirado');
+        }
+    }
+
+    /**
+     * Refrescar token JWT
+     */
+    static refreshToken(token: string): string {
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET, { ignoreExpiration: true });
+            const newPayload = {
+                id: (decoded as any).id,
+                email: (decoded as any).email,
+                nombre: (decoded as any).nombre,
+                zonaId: (decoded as any).zonaId,
+                deporteId: (decoded as any).deporteId
+            };
+              return jwt.sign(newPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as SignOptions);
+        } catch (error) {
+            throw new Error('Token inválido para refrescar');
+        }
     }
 }

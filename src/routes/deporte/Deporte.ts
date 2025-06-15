@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { DeporteController } from '../../controllers/deporte/DeporteController.js';
+import { authenticateJWT, optionalAuth } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 const deporteController = new DeporteController();
@@ -38,17 +39,19 @@ const validarErrores = (req: any, res: any, next: any) => {
 };
 
 // Rutas para deportes
-router.get('/', deporteController.obtenerTodos);
+router.get('/', optionalAuth, deporteController.obtenerTodos);
 
 router.get(
   '/:id',
   validacionId,
   validarErrores,
+  optionalAuth,
   deporteController.obtenerPorId
 );
 
 router.post(
   '/',
+  authenticateJWT,
   validacionesDeporte,
   validarErrores,
   deporteController.crear
@@ -56,6 +59,7 @@ router.post(
 
 router.put(
   '/:id',
+  authenticateJWT,
   validacionId,
   validacionesDeporte,
   validarErrores,
@@ -64,6 +68,7 @@ router.put(
 
 router.delete(
   '/:id',
+  authenticateJWT,
   validacionId,
   validarErrores,
   deporteController.eliminar

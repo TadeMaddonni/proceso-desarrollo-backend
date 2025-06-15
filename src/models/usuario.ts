@@ -9,11 +9,12 @@ interface UsuarioAttributes {
   zonaId: string;
   deporteId: string;
   score?: number;
+  firebaseToken?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface UsuarioCreationAttributes extends Omit<UsuarioAttributes, 'id' | 'score' | 'createdAt' | 'updatedAt'> {}
+interface UsuarioCreationAttributes extends Omit<UsuarioAttributes, 'id' | 'score' | 'firebaseToken' | 'createdAt' | 'updatedAt'> {}
 
 export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').DataTypes): ModelStatic<Model<UsuarioAttributes, UsuarioCreationAttributes>> => {  class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implements UsuarioAttributes {
     declare id: string;
@@ -24,6 +25,7 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     declare zonaId: string;
     declare deporteId: string;
     declare score?: number;
+    declare firebaseToken?: string;
     declare readonly createdAt: Date;
     declare readonly updatedAt: Date;
 
@@ -85,11 +87,16 @@ export default (sequelize: Sequelize, DataTypes: typeof import('sequelize').Data
     },    deporteId: {
       type: DataTypes.UUID,
       allowNull: true
-    },
-    score: {
+    },    score: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: true,
       defaultValue: 0.00
+    },
+    firebaseToken: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'firebase_token',
+      comment: 'Token de Firebase para notificaciones push'
     }}, {
     sequelize,
     modelName: 'Usuario',

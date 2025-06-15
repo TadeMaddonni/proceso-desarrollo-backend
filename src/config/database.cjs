@@ -46,5 +46,35 @@ if (process.env.DATABASE_URL) {
 }
 
 module.exports = {
+  development: {
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'proceso_desarrollo_dev',
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: parseInt(process.env.DB_PORT) || 5432,
+    dialect: 'postgres',
+    define: {
+      underscored: true,
+      freezeTableName: true,
+      timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    }
+  },
+  test: {
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_TEST_NAME || 'proceso_desarrollo_test',
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: parseInt(process.env.DB_PORT) || 5432,
+    dialect: 'postgres',
+    define: {
+      underscored: true,
+      freezeTableName: true,
+      timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    }
+  },
   production: dbConfig
 };

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { ZonaController } from '../../controllers/zona/ZonaController.js';
+import { authenticateJWT, optionalAuth } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 const zonaController = new ZonaController();
@@ -38,17 +39,19 @@ const validarErrores = (req: any, res: any, next: any) => {
 };
 
 // Rutas para zonas
-router.get('/', zonaController.obtenerTodas);
+router.get('/', optionalAuth, zonaController.obtenerTodas);
 
 router.get(
   '/:id',
   validacionId,
   validarErrores,
+  optionalAuth,
   zonaController.obtenerPorId
 );
 
 router.post(
   '/',
+  authenticateJWT,
   validacionesZona,
   validarErrores,
   zonaController.crear
@@ -56,6 +59,7 @@ router.post(
 
 router.put(
   '/:id',
+  authenticateJWT,
   validacionId,
   validacionesZona,
   validarErrores,
@@ -64,6 +68,7 @@ router.put(
 
 router.delete(
   '/:id',
+  authenticateJWT,
   validacionId,
   validarErrores,
   zonaController.eliminar

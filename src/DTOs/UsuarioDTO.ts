@@ -7,6 +7,7 @@ export interface UsuarioDTO {
   zonaId: string;
   deporteId?: string;
   score?: number;
+  firebaseToken?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

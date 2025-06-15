@@ -19,10 +19,11 @@ export class AuthController {
             if (!email || !password || !nombre || !zonaId) {
                 res.status(400).json({ error: 'Email, password, nombre y zonaId son requeridos' });
                 return;
-            }
-
-            const user = await this.authService.signup(email, password, nombre, zonaId, deporteId, nivel);
-            res.status(201).json({ user });        } catch (error: any) {
+            }            const result = await this.authService.signup(email, password, nombre, zonaId, deporteId, nivel);
+            res.status(201).json({ 
+                message: 'Usuario creado exitosamente',
+                ...result 
+            });} catch (error: any) {
             console.error('Error en signup:', error);
             if (error.message === 'El usuario ya existe') {
                 res.status(409).json({ error: error.message });
@@ -47,14 +48,14 @@ export class AuthController {
             if (!email || !password) {
                 res.status(400).json({ error: 'Email and password are required' });
                 return;
-            }
-
-            // Buscar usuario real y verificar contraseña
-            const user = await this.authService.login(email, password);
-            if (user && user.id && user.email) {
-                const JWT_SECRET = process.env.JWT_SECRET || 'default_secret';
-                const token = jwt.sign({ email: user.email, id: user.id }, JWT_SECRET, { expiresIn: '2h' });
-                res.json({ user, token });
+            }            // Buscar usuario real y verificar contraseña
+            const result = await this.authService.login(email, password);
+            if (result && result.user && result.token) {
+                res.json({ 
+                    message: 'Login exitoso',
+                    user: result.user,
+                    token: result.token 
+                });
             } else {
                 res.status(401).json({ error: 'Credenciales inválidas' });
             }

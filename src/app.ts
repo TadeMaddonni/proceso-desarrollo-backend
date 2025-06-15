@@ -6,6 +6,7 @@ import partidoRouter from './routes/partido/Partido.js';
 import invitacionRouter from './routes/partido/Invitacion.js';
 import deporteRouter from './routes/deporte/Deporte.js';
 import zonaRouter from './routes/zona/Zona.js';
+import usuarioRouter from './routes/usuario/Usuario.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -49,6 +50,9 @@ app.use('/api/deportes', deporteRouter);
 
 // Zona routes
 app.use('/api/zonas', zonaRouter);
+
+// Usuario routes
+app.use('/api/usuarios', usuarioRouter);
 
 // Emparejamiento routes
 app.use('/api/emparejamiento', emparejamientoRouter);
