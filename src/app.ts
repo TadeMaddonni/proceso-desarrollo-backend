@@ -1,5 +1,6 @@
 import express, { NextFunction } from 'express';
-import { HealthController } from './controllers/health/HealthController.js'; 
+import cors from 'cors';
+import { HealthController } from './controllers/health/HealthController.js';
 import authRouter from './routes/auth/Auth.js';
 import emparejamientoRouter from './routes/partido/Emparejamiento.js';
 import partidoRouter from './routes/partido/Partido.js';
@@ -26,6 +27,16 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Middleware
+// CORS configuration
+const corsOptions = {
+  origin: '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Controllers
@@ -40,7 +51,7 @@ app.get('/', (req, res) => {
 });
 
 // Auth routes
-app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
 
 // Partido routes
 app.use('/api/partidos', partidoRouter);
