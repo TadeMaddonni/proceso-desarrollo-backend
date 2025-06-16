@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body, param } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { UsuarioController } from '../../controllers/usuario/UsuarioController.js';
 import { authenticateJWT } from '../../middleware/authMiddleware.js';
 
@@ -35,7 +35,6 @@ const validacionObtenerPorId = [
 
 // Middleware simple para validar errores
 const validarErrores = (req: any, res: any, next: any) => {
-  const { validationResult } = require('express-validator');
   const errors = validationResult(req);
   
   if (!errors.isEmpty()) {

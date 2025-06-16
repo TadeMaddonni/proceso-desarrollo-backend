@@ -109,7 +109,7 @@ export class PartidoService {
         {
           model: Usuario,
           as: 'organizador',
-          attributes: ['id', 'nombre', 'email']
+          attributes: ['id', 'nombre', 'email', 'firebaseToken']
         },        {
           model: Deporte,
           attributes: ['id', 'nombre']
@@ -121,7 +121,7 @@ export class PartidoService {
         {
           model: Usuario,
           as: 'participantes',
-          attributes: ['id', 'nombre', 'email', 'nivel'],
+          attributes: ['id', 'nombre', 'email', 'nivel', 'firebaseToken'],
           through: {
             attributes: ['equipo'],
             as: 'usuarioPartido'
@@ -397,12 +397,13 @@ export class PartidoService {
       nivelMaximo: partidoData.nivelMaximo,
       createdAt: partidoData.createdAt,
       updatedAt: partidoData.updatedAt
-    };// Agregar relaciones si están presentes
+    };    // Agregar relaciones si están presentes
     if (partidoData.organizador) {
       dto.organizador = {
         id: partidoData.organizador.id,
         nombre: partidoData.organizador.nombre,
-        email: partidoData.organizador.email
+        email: partidoData.organizador.email,
+        firebaseToken: partidoData.organizador.firebaseToken
       };
     }
 
@@ -428,7 +429,8 @@ export class PartidoService {
         usuario: {
           id: participante.id,
           nombre: participante.nombre,
-          email: participante.email
+          email: participante.email,
+          firebaseToken: participante.firebaseToken
         }
       }));
     }

@@ -16,11 +16,12 @@ export interface PartidoDTO {
   updatedAt?: Date;
   nivelMinimo?: number;
   nivelMaximo?: number;
-    // Relaciones opcionales (incluidas cuando se solicitan)
+  // Relaciones opcionales (incluidas cuando se solicitan)
   organizador?: {
     id: string;
     nombre: string;
     email: string;
+    firebaseToken?: string;
   };
     deporte?: {
     id: string;
@@ -31,8 +32,7 @@ export interface PartidoDTO {
     id: string;
     nombre: string;
   };
-  
-  participantes?: Array<{
+    participantes?: Array<{
     id: string;
     usuarioId: string;
     partidoId: string;
@@ -41,6 +41,7 @@ export interface PartidoDTO {
       id: string;
       nombre: string;
       email: string;
+      firebaseToken?: string;
     };
   }>;
 }

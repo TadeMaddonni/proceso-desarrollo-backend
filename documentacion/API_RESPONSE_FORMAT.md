@@ -7,7 +7,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 ### ✅ Respuestas Exitosas
 
 #### Estructura General
-
 ```json
 {
   "success": true,
@@ -21,7 +20,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 #### Ejemplos
 
 **Login Exitoso:**
-
 ```json
 {
   "success": true,
@@ -38,7 +36,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 ```
 
 **Registro Exitoso:**
-
 ```json
 {
   "success": true,
@@ -57,7 +54,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 ### ❌ Respuestas de Error
 
 #### Estructura General
-
 ```json
 {
   "success": false,
@@ -68,7 +64,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 #### Ejemplos
 
 **Error de Validación:**
-
 ```json
 {
   "success": false,
@@ -77,7 +72,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 ```
 
 **Credenciales Inválidas:**
-
 ```json
 {
   "success": false,
@@ -86,7 +80,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 ```
 
 **Usuario Ya Existe:**
-
 ```json
 {
   "success": false,
@@ -95,7 +88,6 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 ```
 
 **Error del Servidor:**
-
 ```json
 {
   "success": false,
@@ -109,14 +101,13 @@ Todas las respuestas de la API siguen un formato consistente para facilitar el m
 ### JavaScript/React
 
 #### Ejemplo de Login
-
 ```javascript
 const login = async (email, password) => {
   try {
-    const response = await fetch("/auth/login", {
-      method: "POST",
+    const response = await fetch('/auth/login', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, password }),
     });
@@ -127,33 +118,32 @@ const login = async (email, password) => {
     if (response.ok && result.success) {
       // Login exitoso
       const { user, token } = result.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       return { success: true, user, token };
     } else {
       // Error en login
-      throw new Error(result.error || "Error desconocido");
+      throw new Error(result.error || 'Error desconocido');
     }
   } catch (error) {
-    console.error("Error durante login:", error);
+    console.error('Error durante login:', error);
     throw error;
   }
 };
 ```
 
 #### Ejemplo de Uso en Componente React
-
 ```jsx
 const handleSubmit = async (e) => {
   e.preventDefault();
-
+  
   try {
     const result = await login(email, password);
-    console.log("Login exitoso:", result);
+    console.log('Login exitoso:', result);
     // Redirigir o actualizar estado
-    navigate("/dashboard");
+    navigate('/dashboard');
   } catch (error) {
-    console.error("Error en login:", error.message);
+    console.error('Error en login:', error.message);
     setError(error.message);
   }
 };
@@ -162,24 +152,20 @@ const handleSubmit = async (e) => {
 ## 🛡️ Códigos de Estado HTTP
 
 ### Exitosos (2xx)
-
 - **200 OK**: Login exitoso, consulta exitosa
 - **201 Created**: Usuario creado exitosamente
 
 ### Errores del Cliente (4xx)
-
 - **400 Bad Request**: Datos faltantes o inválidos
 - **401 Unauthorized**: Credenciales inválidas, token inválido
 - **409 Conflict**: Usuario ya existe
 
 ### Errores del Servidor (5xx)
-
 - **500 Internal Server Error**: Error interno del servidor
 
 ## 📝 Recomendaciones para el Frontend
 
 ### 1. Verificación de Respuesta
-
 Siempre verificar tanto el código de estado HTTP como el campo `success`:
 
 ```javascript
@@ -191,7 +177,6 @@ if (response.ok && result.success) {
 ```
 
 ### 2. Manejo de Errores
-
 Usar el campo `error` para mostrar mensajes al usuario:
 
 ```javascript
@@ -201,7 +186,6 @@ if (!result.success) {
 ```
 
 ### 3. Acceso a Datos
-
 Los datos siempre están en `result.data`:
 
 ```javascript
@@ -209,20 +193,18 @@ const { user, token } = result.data;
 ```
 
 ### 4. Validación de Token
-
 Para rutas protegidas, incluir el token en los headers:
 
 ```javascript
 const headers = {
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${token}`,
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${token}`
 };
 ```
 
 ## 🚨 Errores Comunes a Evitar
 
 ### 1. No verificar el campo `success`
-
 ```javascript
 // ❌ Incorrecto
 if (response.ok) {
@@ -236,7 +218,6 @@ if (response.ok && result.success) {
 ```
 
 ### 2. Acceder a datos incorrectamente
-
 ```javascript
 // ❌ Incorrecto
 const user = result.user; // undefined
@@ -246,7 +227,6 @@ const user = result.data.user;
 ```
 
 ### 3. No manejar errores específicos
-
 ```javascript
 // ❌ Incorrecto
 catch (error) {
@@ -265,7 +245,6 @@ catch (error) {
 Si el frontend estaba esperando el formato anterior:
 
 ### Antes:
-
 ```json
 {
   "message": "Login exitoso",
@@ -275,7 +254,6 @@ Si el frontend estaba esperando el formato anterior:
 ```
 
 ### Ahora:
-
 ```json
 {
   "success": true,
@@ -288,7 +266,6 @@ Si el frontend estaba esperando el formato anterior:
 ```
 
 ### Código de Migración:
-
 ```javascript
 // Cambiar de:
 const { user, token } = result;
