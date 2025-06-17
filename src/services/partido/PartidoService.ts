@@ -33,13 +33,22 @@ export class PartidoService {
   static async crearPartido(datosPartido: PartidoCreationDTO): Promise<PartidoDTO> {
     const db = await dbPromise;
     const Partido = db.Partido as any;
+    const UsuarioPartido = db.UsuarioPartido as any;
 
     // Crear el partido con estado inicial
     const nuevoPartido = await Partido.create({
       ...datosPartido,
       fecha: new Date(datosPartido.fecha),
       estado: 'NECESITAMOS_JUGADORES',
-      tipoEmparejamiento: datosPartido.tipoEmparejamiento || 'ZONA'
+      tipoEmparejamiento: datosPartido.tipoEmparejamiento || 'ZONA',
+      jugadoresConfirmados: 1 // Inicializar con 1 porque el organizador ya está incluido
+    });
+
+    // Agregar al organizador como participante
+    await UsuarioPartido.create({
+      usuarioId: datosPartido.organizadorId,
+      partidoId: nuevoPartido.id,
+      equipo: 'A' // Por defecto en equipo A
     });
 
     // Ejecutar emparejamiento en segundo plano (diferido)
