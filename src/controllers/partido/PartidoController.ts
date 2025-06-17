@@ -375,4 +375,38 @@ export class PartidoController {
       });
     }
   };
+
+  /**
+   * Obtener todos los partidos de un usuario específico
+   * GET /api/partidos/usuario/:userId
+   */
+  obtenerPartidosDeUsuario = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        res.status(400).json({
+          success: false,
+          message: 'El ID del usuario es requerido'
+        });
+        return;
+      }
+
+      const partidos = await PartidoService.obtenerPartidosDeUsuario(userId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Partidos del usuario obtenidos exitosamente',
+        data: partidos,
+        total: partidos.length
+      });
+
+    } catch (error) {
+      console.error('Error al obtener partidos del usuario:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor al obtener los partidos del usuario'
+      });
+    }
+  };
 }

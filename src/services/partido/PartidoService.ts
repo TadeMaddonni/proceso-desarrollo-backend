@@ -601,4 +601,88 @@ export class PartidoService {
 
     return true;
   }
+
+  /**
+   * Obtener todos los partidos de un usuario específico (como organizador o participante)
+   */
+  static async obtenerPartidosDeUsuario(userId: string): Promise<PartidoDTO[]> {
+    const db = await dbPromise;
+    const Partido = db.Partido as any;
+    const Usuario = db.Usuario as any;
+    const Deporte = db.Deporte as any;
+    const Zona = db.Zona as any;
+    const UsuarioPartido = db.UsuarioPartido as any;
+
+    // Obtener partidos donde el usuario es organizador
+    const partidosComoOrganizador = await Partido.findAll({
+      where: {
+        organizadorId: userId
+      },
+      include: [
+        {
+          model: Usuario,
+          as: 'organizador',
+          attributes: ['id', 'nombre', 'email', 'firebaseToken']
+        },
+        {
+          model: Deporte,
+          attributes: ['id', 'nombre']
+        },
+        {
+          model: Zona,
+          attributes: ['id', 'nombre']
+        },
+        {
+          model: Usuario,
+          as: 'participantes',
+          attributes: ['id', 'nombre', 'email', 'nivel', 'firebaseToken'],
+          through: {
+            attributes: ['equipo'],
+            as: 'usuarioPartido'
+          }
+        }
+      ],
+      order: [['fecha', 'ASC'], ['hora', 'ASC']]
+    });
+
+    // Obtener partidos donde el usuario es participante
+    const partidosComoParticipante = await Partido.findAll({
+      include: [
+        {
+          model: Usuario,
+          as: 'organizador',
+          attributes: ['id', 'nombre', 'email', 'firebaseToken']
+        },
+        {
+          model: Deporte,
+          attributes: ['id', 'nombre']
+        },
+        {
+          model: Zona,
+          attributes: ['id', 'nombre']
+        },
+        {
+          model: Usuario,
+          as: 'participantes',
+          attributes: ['id', 'nombre', 'email', 'nivel', 'firebaseToken'],
+          through: {
+            attributes: ['equipo'],
+            as: 'usuarioPartido'
+          },
+          where: {
+            id: userId
+          }
+        }
+      ],
+      order: [['fecha', 'ASC'], ['hora', 'ASC']]
+    });
+
+    // Combinar ambos resultados y eliminar duplicados
+    const todosLosPartidos = [...partidosComoOrganizador, ...partidosComoParticipante];
+    const partidosUnicos = todosLosPartidos.filter((partido, index, array) => 
+      array.findIndex(p => p.id === partido.id) === index
+    );
+
+    return partidosUnicos.map((partido: any) => this.mapearPartidoConRelacionesADTO(partido));
+  }
 }
