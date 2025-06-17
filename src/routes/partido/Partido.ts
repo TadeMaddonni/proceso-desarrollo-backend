@@ -148,6 +148,15 @@ const validacionObtenerPorId = [
     .withMessage('El ID del partido debe ser un UUID válido')
 ];
 
+// Validaciones para obtener partidos de usuario
+const validacionesPartidosUsuario = [
+  param('userId')
+    .notEmpty()
+    .withMessage('El ID del usuario es requerido')
+    .isUUID()
+    .withMessage('El ID del usuario debe ser un UUID válido')
+];
+
 // Rutas para partidos con middlewares de validación
 router.post(
   '/', 
@@ -220,6 +229,15 @@ router.delete(
   PartidoValidationMiddleware.validarErrores,
   PartidoValidationMiddleware.validarPartidoExiste,
   partidoController.abandonarPartido
+);
+
+// Ruta para obtener partidos de un usuario
+router.get(
+  '/usuario/:userId',
+  optionalAuth,
+  validacionesPartidosUsuario,
+  PartidoValidationMiddleware.validarErrores,
+  partidoController.obtenerPartidosDeUsuario
 );
 
 export default router;
