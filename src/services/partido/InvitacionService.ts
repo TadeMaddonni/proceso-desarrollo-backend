@@ -122,4 +122,79 @@ export class InvitacionService {
       throw error;
     }
   }
+
+  /**
+   * Obtener todas las invitaciones de un usuario
+   */
+  static async obtenerInvitacionesPorUsuario(usuarioId: string) {
+    const db = await dbPromise;
+    const Invitacion = db.Invitacion as any;
+    const Partido = db.Partido as any;
+    const Usuario = db.Usuario as any;
+    const Deporte = db.Deporte as any;
+    const Zona = db.Zona as any;
+
+    try {
+      const invitaciones = await Invitacion.findAll({
+        where: {
+          usuarioId: usuarioId
+        },
+        include: [
+          {
+            model: Partido,
+            include: [
+              {
+                model: Usuario,
+                as: 'organizador',
+                attributes: ['id', 'nombre', 'email']
+              },
+              {
+                model: Deporte,
+                attributes: ['id', 'nombre']
+              },
+              {
+                model: Zona,
+                attributes: ['id', 'nombre']
+              }
+            ]
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      return { success: true, invitaciones };
+    } catch (error) {
+      console.error('[InvitacionService] Error al obtener invitaciones por usuario:', error);
+      return { success: false, message: 'Error interno del servidor', status: 500 };
+    }
+  }
+
+  /**
+   * Obtener todas las invitaciones de un partido
+   */
+  static async obtenerInvitacionesPorPartido(partidoId: string) {
+    const db = await dbPromise;
+    const Invitacion = db.Invitacion as any;
+    const Usuario = db.Usuario as any;
+
+    try {
+      const invitaciones = await Invitacion.findAll({
+        where: {
+          partidoId: partidoId
+        },
+        include: [
+          {
+            model: Usuario,
+            attributes: ['id', 'nombre', 'email']
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      return { success: true, invitaciones };
+    } catch (error) {
+      console.error('[InvitacionService] Error al obtener invitaciones por partido:', error);
+      return { success: false, message: 'Error interno del servidor', status: 500 };
+    }
+  }
 }

@@ -3,11 +3,15 @@ import cors from 'cors';
 import { HealthController } from './controllers/health/HealthController.js';
 import authRouter from './routes/auth/Auth.js';
 import emparejamientoRouter from './routes/partido/Emparejamiento.js';
+import emparejamientoSchedulerRouter from './routes/scheduler/EmparejamientoScheduler.js';
 import partidoRouter from './routes/partido/Partido.js';
 import invitacionRouter from './routes/partido/Invitacion.js';
 import deporteRouter from './routes/deporte/Deporte.js';
 import zonaRouter from './routes/zona/Zona.js';
 import usuarioRouter from './routes/usuario/Usuario.js';
+import { PartidoSchedulerService } from './services/scheduler/PartidoSchedulerService.js';
+import { EmparejamientoSchedulerService } from './services/scheduler/EmparejamientoSchedulerService.js';
+import { EmparejamientoSchedulerController } from './controllers/scheduler/EmparejamientoSchedulerController.js';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -68,6 +72,9 @@ app.use('/api/usuarios', usuarioRouter);
 // Emparejamiento routes
 app.use('/api/emparejamiento', emparejamientoRouter);
 
+// Emparejamiento scheduler routes
+app.use('/api/emparejamiento-scheduler', emparejamientoSchedulerRouter);
+
 // Invitacion routes
 app.use('/api/invitaciones', invitacionRouter);
 
@@ -91,6 +98,34 @@ const server = app.listen(port, () => {
 server.on('error', (error) => {
   console.error('❌ Server error:', error);
 });
+
+// Inicializar schedulers automáticos
+const schedulerService = new PartidoSchedulerService();
+const emparejamientoScheduler = new EmparejamientoSchedulerService();
+
+schedulerService.iniciar();
+emparejamientoScheduler.iniciar();
+
+// Configurar controlador con la instancia del scheduler
+EmparejamientoSchedulerController.setSchedulerInstance(emparejamientoScheduler);
+
+console.log('🤖 Schedulers automáticos iniciados:');
+console.log('   - PartidoScheduler: estados de partidos');
+console.log('   - EmparejamientoScheduler: emparejamiento automático');
+
+// Graceful shutdown
+const gracefulShutdown = (signal: string) => {
+  console.log(`🛑 Recibida señal ${signal}, cerrando servidor...`);
+  schedulerService.detener();
+  emparejamientoScheduler.detener();
+  server.close(() => {
+    console.log('🔥 Servidor cerrado correctamente');
+    process.exit(0);
+  });
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 console.log('🚀 Starting server...');
 

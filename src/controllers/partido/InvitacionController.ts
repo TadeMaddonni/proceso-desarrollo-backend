@@ -23,4 +23,46 @@ export class InvitacionController {
       res.status(result.status || 400).json({ success: false, message: result.message });
     }
   }
+
+  /**
+   * Obtener todas las invitaciones de un usuario
+   */
+  async obtenerPorUsuario(req: Request, res: Response) {
+    const usuarioId = req.params.usuarioId;
+    const result = await InvitacionService.obtenerInvitacionesPorUsuario(usuarioId);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        data: result.invitaciones,
+        message: 'Invitaciones obtenidas correctamente'
+      });
+    } else {
+      res.status(result.status || 500).json({
+        success: false,
+        message: result.message
+      });
+    }
+  }
+
+  /**
+   * Obtener todas las invitaciones de un partido
+   */
+  async obtenerPorPartido(req: Request, res: Response) {
+    const partidoId = req.params.partidoId;
+    const result = await InvitacionService.obtenerInvitacionesPorPartido(partidoId);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        data: result.invitaciones,
+        message: 'Invitaciones del partido obtenidas correctamente'
+      });
+    } else {
+      res.status(result.status || 500).json({
+        success: false,
+        message: result.message
+      });
+    }
+  }
 }

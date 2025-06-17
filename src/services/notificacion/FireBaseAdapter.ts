@@ -2,6 +2,7 @@ import type { Notificador } from './NotificadorInterface.js';
 import type { PartidoDTO } from '../../DTOs/PartidoDTO.js';
 import UsuarioService from '../usuario/UsuarioService.js';
 import admin from 'firebase-admin';
+import dbPromise from '../../models/index.js';
 
 // Cargar variables de entorno desde el proceso principal
 
@@ -284,9 +285,118 @@ export class FireBaseAdapter implements Notificador {
   public reinitialize(): void {
     this.initializeFirebase();
   }
-
   // Método público para verificar estado de Firebase
   public isInitialized(): boolean {
     return this.firebaseInitialized;
+  }
+
+  /**
+   * Envía notificación push cuando se crea una nueva invitación
+   */
+  async enviarNotificacionInvitacion(invitacionId: string): Promise<void> {
+    console.log(`[Firebase] 📨 Preparando notificación de invitación: ${invitacionId}`);
+    
+    try {
+      // Obtener datos completos de la invitación
+      const invitacionCompleta = await this.obtenerInvitacionCompleta(invitacionId);
+      
+      if (!invitacionCompleta) {
+        console.log(`[Firebase] ❌ No se encontró la invitación ${invitacionId}`);
+        return;
+      }
+
+      const { usuario, partido, organizador } = invitacionCompleta;
+      
+      if (!usuario.firebaseToken) {
+        console.log(`[Firebase] ❌ Usuario ${usuario.email} no tiene token Firebase`);
+        return;
+      }
+
+      const mensaje = {
+        notification: {
+          title: '🎯 Nueva invitación a partido',
+          body: `${organizador.nombre} te invitó a "${partido.nombre}"`
+        },
+        data: {
+          tipo: 'nueva_invitacion',
+          invitacionId: invitacionId,
+          partidoId: partido.id,
+          partidoNombre: partido.nombre,
+          organizador: organizador.nombre,
+          fecha: partido.fecha.toString(),
+          hora: partido.hora,
+          direccion: partido.direccion,
+          deporte: partido.deporte || 'Deporte'
+        },
+        token: usuario.firebaseToken
+      };      console.log(`[Firebase] 📤 Enviando notificación de invitación a ${usuario.email}`);
+      
+      if (!this.firebaseInitialized) {
+        console.log(`[Firebase] 📱 Push simulado - Nueva invitación`);
+        console.log(`[Firebase] 📱 Para: ${usuario.email}`);
+        console.log(`[Firebase] 📱 Título: ${mensaje.notification.title}`);
+        console.log(`[Firebase] 📱 Cuerpo: ${mensaje.notification.body}`);
+        console.log(`[Firebase] 📱 Datos:`, mensaje.data);
+      } else {
+        const response = await admin.messaging().send(mensaje);
+        console.log(`[Firebase] ✅ Notificación de invitación enviada exitosamente:`, response);
+      }
+      
+    } catch (error) {
+      console.error('[Firebase] ❌ Error enviando notificación de invitación:', error);
+      throw error;
+    }
+  }
+  /**
+   * Obtiene datos completos de la invitación incluyendo usuario, partido y organizador
+   */
+  private async obtenerInvitacionCompleta(invitacionId: string): Promise<any> {
+    try {
+      const db = await dbPromise;
+      const Invitacion = db.Invitacion as any;
+      const Usuario = db.Usuario as any;
+      const Partido = db.Partido as any;
+      const Deporte = db.Deporte as any;      const invitacion = await Invitacion.findByPk(invitacionId, {
+        include: [
+          {
+            model: Usuario,
+            attributes: ['id', 'nombre', 'email', 'firebaseToken']
+          },
+          {
+            model: Partido,
+            attributes: ['id', 'fecha', 'hora', 'direccion'],
+            include: [
+              {
+                model: Usuario,
+                as: 'organizador',
+                attributes: ['id', 'nombre', 'email']
+              },
+              {
+                model: Deporte,
+                attributes: ['id', 'nombre']
+              }
+            ]
+          }
+        ]
+      });
+
+      if (!invitacion) return null;
+
+      return {
+        usuario: invitacion.Usuario,
+        partido: {
+          id: invitacion.Partido.id,
+          nombre: `Partido de ${invitacion.Partido.Deporte?.nombre || 'Deporte'}`, // Generamos un nombre
+          fecha: invitacion.Partido.fecha,
+          hora: invitacion.Partido.hora,
+          direccion: invitacion.Partido.direccion,
+          deporte: invitacion.Partido.Deporte?.nombre || 'Deporte'
+        },
+        organizador: invitacion.Partido.organizador
+      };
+    } catch (error) {
+      console.error('[Firebase] ❌ Error obteniendo invitación completa:', error);
+      return null;
+    }
   }
 }

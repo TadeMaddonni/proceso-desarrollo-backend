@@ -23,6 +23,18 @@ function optionalAuth(req: any, res: any, next: any): void {
   next();
 }
 
+// Obtener invitaciones por usuario
+router.get('/usuario/:usuarioId',
+  authenticateJWT,
+  wrapAsync(invitacionController.obtenerPorUsuario)
+);
+
+// Obtener invitaciones por partido
+router.get('/partido/:partidoId',
+  authenticateJWT,
+  wrapAsync(invitacionController.obtenerPorPartido)
+);
+
 // Aceptar invitación
 router.put('/:id/aceptar',
   optionalAuth,
