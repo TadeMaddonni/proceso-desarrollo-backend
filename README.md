@@ -22,18 +22,21 @@ Este es el backend de la aplicación desarrollado con Node.js, Express y TypeScr
 ## 🔧 Instalación
 
 1. Clonar el repositorio:
+
 ```bash
 git clone [URL_DEL_REPOSITORIO]
 cd backend
 ```
 
 2. Instalar dependencias:
+
 ```bash
 npm install
 ```
 
 3. Configurar variables de entorno:
-Crear un archivo `.env` en la raíz del proyecto con las siguientes variables:
+   Crear un archivo `.env` en la raíz del proyecto con las siguientes variables:
+
 ```env
 # Database
 DB_HOST=localhost
@@ -84,9 +87,34 @@ src/
 └── app.ts         # Punto de entrada de la aplicación
 ```
 
+## 🌐 Endpoints Principales
+
+### Autenticación
+
+- `POST /auth/signup` - Registro de usuario
+- `POST /auth/login` - Inicio de sesión
+- `GET /auth/protected` - Verificar token
+
+### Partidos
+
+- `POST /api/partidos` - Crear partido
+- `GET /api/partidos` - Obtener todos los partidos
+- `GET /api/partidos/:id` - Obtener partido por ID
+- `PUT /api/partidos/:id/estado` - Actualizar estado
+- `PUT /api/partidos/:id/finalizar` - Finalizar partido
+
+### Emparejamiento e Invitaciones
+
+- `POST /api/emparejamiento/ejecutar` - Ejecutar emparejamiento
+- `GET /api/invitaciones/usuario/:id` - Obtener invitaciones
+- `PUT /api/invitaciones/:id/responder` - Responder invitación
+
+**📝 Nota**: El sistema funciona únicamente con flujo de invitaciones. Los usuarios NO pueden unirse directamente a partidos.
+
 ## 🔒 Seguridad
 
 El proyecto implementa varias medidas de seguridad:
+
 - Autenticación JWT
 - Rate limiting
 - Helmet para headers de seguridad
@@ -100,6 +128,7 @@ El proyecto utiliza Resend para el envío de emails.
 ## 🧪 Testing
 
 Los tests están escritos con Jest y se pueden ejecutar con:
+
 ```bash
 npm test
 ```
