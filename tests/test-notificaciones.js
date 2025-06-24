@@ -1,8 +1,8 @@
 /**
  * Script para probar notificaciones de Firebase con un partido real
  */
-import { PartidoService } from './dist/services/partido/PartidoService.js';
-import dbPromise from './dist/models/index.js';
+import { PartidoService } from '../dist/services/partido/PartidoService.js';
+import dbPromise from '../dist/models/index.js';
 
 async function probarNotificaciones() {
   console.log('🧪 === PRUEBA DE NOTIFICACIONES FIREBASE ===\n');

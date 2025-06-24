@@ -1,8 +1,8 @@
 /**
  * Script para agregar un token Firebase a un usuario y probar notificaciones
  */
-import dbPromise from './dist/models/index.js';
-import { PartidoService } from './dist/services/partido/PartidoService.js';
+import dbPromise from '../dist/models/index.js';
+import { PartidoService } from '../dist/services/partido/PartidoService.js';
 
 async function probarConTokenReal() {
   console.log('🧪 === AGREGANDO TOKEN Y PROBANDO NOTIFICACIONES ===\n');

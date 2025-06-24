@@ -1,6 +1,6 @@
-const dbPromise = import('./dist/models/index.js').then(m => m.default);
-const { PartidoService } = await import('./dist/services/partido/PartidoService.js');
-const { EmparejamientoService } = await import('./dist/services/partido/emparejamiento/EmparejamientoService.js');
+const dbPromise = import('../dist/models/index.js').then(m => m.default);
+const { PartidoService } = await import('../dist/services/partido/PartidoService.js');
+const { EmparejamientoService } = await import('../dist/services/partido/emparejamiento/EmparejamientoService.js');
 
 /**
  * 🧪 Script para probar las notificaciones de invitación

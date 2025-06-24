@@ -1,8 +1,8 @@
 /**
  * Script para probar notificaciones de Firebase con participantes
  */
-import { PartidoService } from './dist/services/partido/PartidoService.js';
-import dbPromise from './dist/models/index.js';
+import { PartidoService } from '../dist/services/partido/PartidoService.js';
+import dbPromise from '../dist/models/index.js';
 
 async function probarNotificacionesConParticipantes() {
   console.log('🧪 === PRUEBA DE NOTIFICACIONES FIREBASE CON PARTICIPANTES ===\n');

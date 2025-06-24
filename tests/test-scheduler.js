@@ -1,8 +1,8 @@
 /**
  * Script para probar el scheduler automático creando partidos con fechas pasadas
  */
-import { PartidoService } from './dist/services/partido/PartidoService.js';
-import dbPromise from './dist/models/index.js';
+import { PartidoService } from '../dist/services/partido/PartidoService.js';
+import dbPromise from '../dist/models/index.js';
 
 async function probarScheduler() {
   console.log('🧪 === PRUEBA DEL SCHEDULER AUTOMÁTICO ===\n');

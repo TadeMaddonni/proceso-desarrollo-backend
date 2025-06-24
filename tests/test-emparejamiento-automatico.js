@@ -1,8 +1,8 @@
-import { PartidoService } from './dist/services/partido/PartidoService.js';
-import { PartidoSchedulerService } from './dist/services/scheduler/PartidoSchedulerService.js';
-import { EmparejamientoSchedulerService } from './dist/services/scheduler/EmparejamientoSchedulerService.js';
-import { EmparejamientoService } from './dist/services/partido/emparejamiento/EmparejamientoService.js';
-import dbPromise from './dist/models/index.js';
+import { PartidoService } from '../dist/services/partido/PartidoService.js';
+import { PartidoSchedulerService } from '../dist/services/scheduler/PartidoSchedulerService.js';
+import { EmparejamientoSchedulerService } from '../dist/services/scheduler/EmparejamientoSchedulerService.js';
+import { EmparejamientoService } from '../dist/services/partido/emparejamiento/EmparejamientoService.js';
+import dbPromise from '../dist/models/index.js';
 
 /**
  * Script para probar el emparejamiento automático recurrente con node-cron
