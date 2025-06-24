@@ -409,4 +409,47 @@ export class PartidoController {
       });
     }
   };
+
+  /**
+   * Actualizar el equipo ganador de un partido finalizado
+   * PUT /api/partidos/:id/ganador
+   */
+  actualizarEquipoGanador = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const partidoId = req.params.id;
+      const { equipoGanador } = req.body;
+      
+      // Validar que el equipoGanador sea válido
+      if (!equipoGanador || !['A', 'B'].includes(equipoGanador)) {
+        res.status(400).json({
+          success: false,
+          message: 'El equipo ganador debe ser A o B'
+        });
+        return;
+      }
+      
+      const resultado = await PartidoService.actualizarEquipoGanador(partidoId, equipoGanador);
+      
+      if (!resultado.success) {
+        res.status(400).json({
+          success: false,
+          message: resultado.message
+        });
+        return;
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: resultado.message,
+        data: resultado.partido
+      });
+      
+    } catch (error) {
+      console.error('Error al actualizar equipo ganador:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor al actualizar el equipo ganador'
+      });
+    }
+  };
 }

@@ -685,4 +685,69 @@ export class PartidoService {
 
     return partidosUnicos.map((partido: any) => this.mapearPartidoConRelacionesADTO(partido));
   }
+
+  /**
+   * Actualizar equipo ganador de un partido finalizado
+   * @param partidoId ID del partido
+   * @param equipoGanador 'A' o 'B'
+   * @returns Partido actualizado
+   */
+  static async actualizarEquipoGanador(partidoId: string, equipoGanador: 'A' | 'B'): Promise<{ success: boolean, message: string, partido?: any }> {
+    const db = await dbPromise;
+    const Partido = db.Partido as any;
+    const Usuario = db.Usuario as any;
+    const Deporte = db.Deporte as any;
+    const Zona = db.Zona as any;
+    
+    try {
+      // Obtener el partido
+      const partido = await Partido.findByPk(partidoId, {
+        include: [
+          { model: Usuario, as: 'organizador' },
+          { model: Deporte },
+          { model: Zona }
+        ]
+      });
+      
+      if (!partido) {
+        return { 
+          success: false, 
+          message: 'Partido no encontrado' 
+        };
+      }
+      
+      // Validar que el partido esté finalizado
+      if (partido.estado !== 'FINALIZADO') {
+        return { 
+          success: false, 
+          message: 'Solo se puede establecer el equipo ganador en un partido finalizado' 
+        };
+      }
+      
+      // Validar el equipo ganador
+      if (!['A', 'B'].includes(equipoGanador)) {
+        return { 
+          success: false, 
+          message: 'El equipo ganador debe ser A o B' 
+        };
+      }
+      
+      // Actualizar el campo equipoGanador
+      partido.equipoGanador = equipoGanador;
+      await partido.save();
+        // No notificamos a los observadores por ahora
+      // Se podría implementar una notificación específica más adelante
+      return { 
+        success: true, 
+        message: `Equipo ${equipoGanador} marcado como ganador`, 
+        partido: partido 
+      };
+    } catch (error) {
+      console.error('[PartidoService] Error al actualizar equipo ganador:', error);
+      return { 
+        success: false, 
+        message: `Error al actualizar equipo ganador: ${(error as Error).message}` 
+      };
+    }
+  }
 }
