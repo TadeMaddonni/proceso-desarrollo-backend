@@ -1,6 +1,9 @@
 // EnJuego.ts - Estado cuando el partido está en curso
 import { EstadoPartido } from './EstadoPartido.js';
 import type { PartidoDTO } from '../../../DTOs/PartidoDTO.js';
+import type { PartidoFinalizarDTO } from '../../../DTOs/PartidoCreationDTO.js';
+import dbPromise from '../../../models/index.js';
+import { ScoreService } from '../../usuario/ScoreService.js';
 
 export class EnJuego extends EstadoPartido {
   permiteInvitaciones(): boolean {
@@ -18,10 +21,22 @@ export class EnJuego extends EstadoPartido {
   iniciar(partido: PartidoDTO): void {
     throw new Error('El partido ya está en juego');
   }
+  async finalizar(partido: PartidoDTO, equipoGanador?: 'A' | 'B'): Promise<void> {
+    // Actualizar scores si hay un equipo ganador
+    if (equipoGanador) {
+      try {
+        await ScoreService.actualizarScoresPartidoFinalizado(partido.id, equipoGanador);
+      } catch (error) {
+        console.error('[EnJuego] Error al actualizar scores del partido:', error);
+        // No fallar la finalización del partido si hay error en scores
+      }
+    }
 
-  finalizar(partido: PartidoDTO): void {
-    // El partido puede ser finalizado con el equipo ganador
+    // El partido puede ser finalizado
     partido.estado = 'FINALIZADO';
+    if (equipoGanador) {
+      partido.equipoGanador = equipoGanador;
+    }
   }
 
   // Método para registrar eventos durante el juego

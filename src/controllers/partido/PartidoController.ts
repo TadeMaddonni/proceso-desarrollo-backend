@@ -88,9 +88,8 @@ export class PartidoController {
     }
   };
 
-
   /**
-   * Actualizar estado del partido
+   * Actualizar estado del partido usando patrón State
    * PUT /api/partidos/:id/estado
    */
   actualizarEstado = async (req: Request, res: Response): Promise<void> => {
@@ -98,7 +97,8 @@ export class PartidoController {
       const { id } = req.params;
       const { estado } = req.body;
 
-      const actualizado = await PartidoService.actualizarEstadoPartido(id, estado);
+      // Usar el método con validación de patrón State en lugar del método directo
+      const actualizado = await PartidoService.cambiarEstadoConValidacion(id, estado);
 
       if (!actualizado) {
         res.status(404).json({
@@ -116,19 +116,27 @@ export class PartidoController {
           estado,
           updatedAt: new Date()
         }
-      });
-
-    } catch (error) {
+      });    } catch (error) {
       console.error('Error al actualizar estado del partido:', error);
+      
+      // Manejar errores específicos de validación de estado
+      if ((error as Error).message.includes('Transición no válida') || 
+          (error as Error).message.includes('no implementada')) {
+        res.status(400).json({
+          success: false,
+          message: (error as Error).message
+        });
+        return;
+      }
+
       res.status(500).json({
         success: false,
-        message: 'Error interno del servidor al actualizar estado del partido'
+        message: 'Error interno del servidor al actualizar el estado'
       });
     }
   };
-
   /**
-   * Finalizar partido y establecer equipo ganador
+   * Finalizar partido y establecer equipo ganador usando patrón State
    * PUT /api/partidos/:id/finalizar
    */
   finalizar = async (req: Request, res: Response): Promise<void> => {
@@ -136,7 +144,12 @@ export class PartidoController {
       const { id } = req.params;
       const datosFinalizacion: PartidoFinalizarDTO = req.body;
 
-      const finalizado = await PartidoService.finalizarPartido(id, datosFinalizacion);
+      // Usar el método de cambio de estado con validación en lugar del método específico
+      const finalizado = await PartidoService.cambiarEstadoConValidacion(
+        id, 
+        'FINALIZADO', 
+        datosFinalizacion.equipoGanador
+      );
 
       if (!finalizado) {
         res.status(404).json({
@@ -159,6 +172,16 @@ export class PartidoController {
 
     } catch (error) {
       console.error('Error al finalizar partido:', error);
+      
+      // Manejar errores específicos de validación de estado
+      if ((error as Error).message.includes('Transición no válida') || 
+          (error as Error).message.includes('no se puede finalizar')) {
+        res.status(400).json({
+          success: false,
+          message: (error as Error).message
+        });
+        return;
+      }
       res.status(500).json({
         success: false,
         message: 'Error interno del servidor al finalizar partido'

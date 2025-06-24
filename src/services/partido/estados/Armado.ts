@@ -20,8 +20,7 @@ export class Armado extends EstadoPartido {
   iniciar(partido: PartidoDTO): void {
     throw new Error('El partido debe estar confirmado antes de iniciarse');
   }
-
-  finalizar(partido: PartidoDTO): void {
+  finalizar(partido: PartidoDTO, equipoGanador?: 'A' | 'B'): void {
     throw new Error('No se puede finalizar un partido que no ha iniciado');
   }
 

@@ -81,6 +81,13 @@ export class EstadoFactory {
   }
 
   /**
+   * Verificar si un estado es final (no permite más transiciones)
+   */
+  static esEstadoFinal(estado: EstadoPartidoType): boolean {
+    return estado === 'FINALIZADO' || estado === 'CANCELADO';
+  }
+
+  /**
    * Limpiar instancias (útil para testing)
    */
   static limpiarInstancias(): void {

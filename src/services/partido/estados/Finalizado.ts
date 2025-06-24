@@ -19,7 +19,7 @@ export class Finalizado extends EstadoPartido {
     throw new Error('El partido ya ha finalizado');
   }
 
-  finalizar(partido: PartidoDTO): void {
+  finalizar(partido: PartidoDTO, equipoGanador?: 'A' | 'B'): void {
     throw new Error('El partido ya está finalizado');
   }
 

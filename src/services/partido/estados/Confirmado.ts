@@ -19,8 +19,7 @@ export class Confirmado extends EstadoPartido {
     // Se transiciona automáticamente cuando llega la fecha y hora
     partido.estado = 'EN_JUEGO';
   }
-
-  finalizar(partido: PartidoDTO): void {
+  finalizar(partido: PartidoDTO, equipoGanador?: 'A' | 'B'): void {
     throw new Error('El partido debe estar en juego para poder finalizarse');
   }
 
