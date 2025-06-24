@@ -145,133 +145,9 @@ export class PartidoService {
 
     return this.mapearPartidoConRelacionesADTO(partido);
   }  /**
-   * Unir un usuario a un partido
-   */
-  static async unirUsuarioAPartido(partidoId: string, datosUnirse: UnirsePartidoDTO): Promise<any> {
-    const db = await dbPromise;
-    const UsuarioPartido = db.UsuarioPartido as any;
-    const Partido = db.Partido as any;
-
-    // Si no se especifica equipo, auto-asignar balanceando
-    let equipoAsignado = datosUnirse.equipo;
-    if (!equipoAsignado) {
-      equipoAsignado = await this.autoAsignarEquipo(partidoId);
-    }
-
-    // Crear la relación usuario-partido
-    const usuarioPartido = await UsuarioPartido.create({
-      usuarioId: datosUnirse.usuarioId,
-      partidoId: partidoId,
-      equipo: equipoAsignado
-    });    // Incrementar jugadoresConfirmados en el partido
-    await Partido.increment('jugadoresConfirmados', {
-      where: { id: partidoId }
-    });    // Verificar si se alcanzó la cantidad de jugadores requerida
-    const partidoActualizado = await Partido.findByPk(partidoId);
-    if (partidoActualizado && 
-        partidoActualizado.jugadoresConfirmados >= partidoActualizado.cantidadJugadores &&
-        partidoActualizado.estado === 'NECESITAMOS_JUGADORES') {
-      await this.actualizarEstadoPartido(partidoId, 'ARMADO');
-    }
-
-    return {
-      id: usuarioPartido.id,
-      usuarioId: usuarioPartido.usuarioId,
-      partidoId: usuarioPartido.partidoId,
-      equipo: usuarioPartido.equipo,
-      fechaUnion: usuarioPartido.createdAt
-    };
-  }
-  /**
-   * Actualizar el estado de un partido
-   */
-  static async actualizarEstadoPartido(id: string, nuevoEstado: string): Promise<boolean> {
-    const db = await dbPromise;
-    const Partido = db.Partido as any;
-
-    // Obtener el estado anterior del partido antes de actualizarlo
-    const partidoAntes = await this.obtenerPartidoPorId(id);
-    if (!partidoAntes) {
-      return false;
-    }
-    const estadoAnterior = partidoAntes.estado;
-
-    const [rowsUpdated] = await Partido.update(
-      { 
-        estado: nuevoEstado,
-        updatedAt: new Date()
-      },
-      { where: { id } }
-    );
-
-    // Si se actualizó correctamente y cambió el estado, notificar observadores
-    if (rowsUpdated > 0 && estadoAnterior !== nuevoEstado) {
-      try {
-        const partidoActualizado = await this.obtenerPartidoPorId(id);
-        if (partidoActualizado) {
-          await this.subject.notificarObservadores(partidoActualizado, estadoAnterior, nuevoEstado);
-        }
-      } catch (error) {
-        console.error('[PartidoService] Error al notificar observadores:', error);
-        // No fallar la actualización del estado si hay error en notificaciones
-      }
-    }
-
-    return rowsUpdated > 0;
-  }  /**
-   * Finalizar un partido
-   */
-  static async finalizarPartido(id: string, datos: PartidoFinalizarDTO): Promise<boolean> {
-    const db = await dbPromise;
-    const Partido = db.Partido as any;
-
-    // Obtener el estado anterior del partido antes de finalizarlo
-    const partidoAntes = await this.obtenerPartidoPorId(id);
-    if (!partidoAntes) {
-      return false;
-    }
-    const estadoAnterior = partidoAntes.estado;
-
-    const updateData: any = { 
-      estado: 'FINALIZADO',
-      updatedAt: new Date()
-    };
-
-    if (datos.equipoGanador) {
-      updateData.equipoGanador = datos.equipoGanador;
-    }
-
-    const [rowsUpdated] = await Partido.update(updateData, { where: { id } });
-
-    // Si se actualizó el partido y hay un equipo ganador, actualizar scores
-    if (rowsUpdated > 0) {
-      try {
-        await ScoreService.actualizarScoresPartidoFinalizado(id, datos.equipoGanador || null);
-      } catch (error) {
-        console.error('Error al actualizar scores del partido:', error);
-        // No fallar la finalización del partido si hay error en scores
-      }
-
-      // Notificar observadores sobre el cambio de estado
-      if (estadoAnterior !== 'FINALIZADO') {
-        try {
-          const partidoFinalizado = await this.obtenerPartidoPorId(id);
-          if (partidoFinalizado) {
-            await this.subject.notificarObservadores(partidoFinalizado, estadoAnterior, 'FINALIZADO');
-          }
-        } catch (error) {
-          console.error('[PartidoService] Error al notificar observadores en finalización:', error);
-          // No fallar la finalización si hay error en notificaciones
-        }
-      }
-    }
-
-    return rowsUpdated > 0;
-  }
-
-  /**
    * Actualizar datos de un partido
-   */  static async actualizarPartido(id: string, datosActualizacion: PartidoUpdateDTO): Promise<boolean> {
+   */
+  static async actualizarPartido(id: string, datosActualizacion: PartidoUpdateDTO): Promise<boolean> {
     const db = await dbPromise;
     const Partido = db.Partido as any;
 
@@ -288,23 +164,6 @@ export class PartidoService {
   }
 
   /**
-   * Verificar si un partido puede ser modificado
-   */
-  static async puedeSerModificado(partidoId: string): Promise<boolean> {
-    const db = await dbPromise;
-    const Partido = db.Partido as any;
-
-    const partido = await Partido.findByPk(partidoId);
-    if (!partido) {
-      return false;
-    }
-
-    const partidoData = partido.get();
-    const estadosNoModificables = ['FINALIZADO', 'CANCELADO'];
-    
-    return !estadosNoModificables.includes(partidoData.estado);
-  }
-  /**
    * Obtener participantes de un partido
    */
   static async obtenerParticipantes(partidoId: string): Promise<any[]> {
@@ -319,7 +178,9 @@ export class PartidoService {
         attributes: ['id', 'nombre', 'email', 'nivel']
       }],
       order: [['equipo', 'ASC'], ['createdAt', 'ASC']]
-    });    return participantes.map((participante: any) => ({
+    });
+
+    return participantes.map((participante: any) => ({
       id: participante.id,
       usuarioId: participante.usuarioId,
       partidoId: participante.partidoId,
@@ -329,33 +190,6 @@ export class PartidoService {
     }));
   }
 
-  /**
-   * Contar participantes por equipo
-   */
-  static async contarParticipantesPorEquipo(partidoId: string): Promise<{ equipoA: number; equipoB: number }> {
-    const db = await dbPromise;
-    const UsuarioPartido = db.UsuarioPartido as any;
-
-    const participantes = await UsuarioPartido.findAll({
-      where: { partidoId },
-      attributes: ['equipo']
-    });
-
-    const equipoA = participantes.filter((p: any) => p.equipo === 'A').length;
-    const equipoB = participantes.filter((p: any) => p.equipo === 'B').length;
-
-    return { equipoA, equipoB };
-  }
-
-  /**
-   * Auto-asignar equipo balanceando la cantidad de jugadores
-   */
-  private static async autoAsignarEquipo(partidoId: string): Promise<'A' | 'B'> {
-    const conteos = await this.contarParticipantesPorEquipo(partidoId);
-    
-    // Asignar al equipo con menos jugadores
-    return conteos.equipoA <= conteos.equipoB ? 'A' : 'B';
-  }
   /**
    * Mapear entidad Partido a DTO
    */
@@ -445,47 +279,56 @@ export class PartidoService {
     }
 
     return dto;
+  }  // =====================================
+  // SECCIÓN: MÉTODOS PATRÓN STATE
+  // =====================================
+  // Todos los métodos relacionados con transiciones de estado están agrupados aquí
+  // para facilitar el mantenimiento y comprensión del patrón State implementado
+  /**
+   * Unir un usuario a un partido - delegado al patrón State
+   */
+  static async unirUsuarioAPartido(partidoId: string, datosUnirse: UnirsePartidoDTO): Promise<any> {
+    // Obtener el partido y verificar su estado
+    const partido = await this.obtenerPartidoPorId(partidoId);
+    if (!partido) {
+      throw new Error('Partido no encontrado');
+    }
+
+    // Obtener el estado actual y verificar si permite unir usuarios
+    const estadoActual = partido.estado as EstadoPartidoType;
+    const estado = EstadoFactory.crearEstado(estadoActual) as any;
+    
+    // Verificar si el estado actual tiene el método unirUsuario
+    if (!estado.unirUsuario) {
+      throw new Error(`No se puede unir a un partido en estado ${estadoActual}`);
+    }
+
+    // Delegar la lógica al estado correspondiente
+    return await estado.unirUsuario(partidoId, datosUnirse);
   }
   /**
-   * Validar transición de estado
+   * Verificar si un partido puede ser modificado usando el patrón State
    */
-  static validarTransicionEstado(estadoActual: string, nuevoEstado: string): boolean {
-    const transicionesValidas: { [key: string]: string[] } = {
-      'NECESITAMOS_JUGADORES': ['ARMADO', 'CANCELADO'],
-      'ARMADO': ['CONFIRMADO', 'CANCELADO', 'NECESITAMOS_JUGADORES'],
-      'CONFIRMADO': ['EN_JUEGO'],
-      'EN_JUEGO': ['FINALIZADO'],
-      'FINALIZADO': [],
-      'CANCELADO': []
-    };
-
-    return transicionesValidas[estadoActual]?.includes(nuevoEstado) || false;
-  }
-  /**
-   * Verificar si un partido está completo (tiene suficientes jugadores)
-   */
-  static async verificarPartidoCompleto(partidoId: string): Promise<boolean> {
-    const db = await dbPromise;
-    const Partido = db.Partido as any;
-
-    const partido = await Partido.findByPk(partidoId);
-
+  static async puedeSerModificado(partidoId: string): Promise<boolean> {
+    const partido = await this.obtenerPartidoPorId(partidoId);
     if (!partido) {
       return false;
     }
 
-    const participantes = await this.obtenerParticipantes(partidoId);
-    const cantidadNecesaria = partido.cantidadJugadores || 0;
-
-    return participantes.length >= cantidadNecesaria;
+    // Delegar completamente a EstadoFactory - verificar si hay transiciones válidas disponibles
+    const estadoActual = partido.estado as EstadoPartidoType;
+    const estadosValidos = EstadoFactory.obtenerEstadosValidos();
+    
+    // Un partido puede ser modificado si existe al menos una transición válida desde su estado actual
+    return estadosValidos.some(nuevoEstado => 
+      nuevoEstado !== estadoActual && EstadoFactory.esTransicionValida(estadoActual, nuevoEstado)
+    );
   }
-
-  // ===== MÉTODOS USANDO PATRÓN STATE =====
 
   /**
    * Cambiar estado de un partido usando el patrón State
    */
-  static async cambiarEstadoConValidacion(partidoId: string, nuevoEstado: EstadoPartidoType): Promise<boolean> {
+  static async cambiarEstadoConValidacion(partidoId: string, nuevoEstado: EstadoPartidoType, equipoGanador?: 'A' | 'B'): Promise<boolean> {
     const partido = await this.obtenerPartidoPorId(partidoId);
     if (!partido) {
       throw new Error('Partido no encontrado');
@@ -513,7 +356,16 @@ export class PartidoService {
           estadoObj.iniciar(partido);
           break;
         case 'FINALIZADO':
-          estadoObj.finalizar(partido);
+          await estadoObj.finalizar(partido, equipoGanador);
+          // Si hay equipo ganador, también actualizar en la base de datos
+          if (equipoGanador) {
+            const db = await dbPromise;
+            const Partido = db.Partido as any;
+            await Partido.update(
+              { equipoGanador }, 
+              { where: { id: partidoId } }
+            );
+          }
           break;
         default:
           throw new Error(`Transición a ${nuevoEstado} no implementada`);
@@ -527,26 +379,37 @@ export class PartidoService {
   }
 
   /**
-   * Verificar si un partido permite invitaciones según su estado
-   */
-  static permiteInvitaciones(estadoPartido: EstadoPartidoType): boolean {
-    const estado = EstadoFactory.crearEstado(estadoPartido);
-    return estado.permiteInvitaciones();
-  }
-
-  /**
    * Transición automática a "ARMADO" cuando se completa el equipo
-   */  static async verificarYTransicionarArmado(partidoId: string): Promise<void> {
+   * Delegado al estado correspondiente siguiendo el patrón State
+   */  
+  static async verificarYTransicionarArmado(partidoId: string): Promise<void> {
     const partido = await this.obtenerPartidoPorId(partidoId);
     if (!partido || partido.estado !== 'NECESITAMOS_JUGADORES') {
       return;
-    }    const estaCompleto = await this.verificarPartidoCompleto(partidoId);
-    if (estaCompleto) {
-      const estado = EstadoFactory.crearEstado('NECESITAMOS_JUGADORES') as any;
-      if (estado.equipoCompleto) {
-        estado.equipoCompleto(partido);
-        await this.actualizarEstadoPartido(partidoId, 'ARMADO');
-      }
+    }
+
+    // Delegar la lógica al estado correspondiente
+    const estado = EstadoFactory.crearEstado('NECESITAMOS_JUGADORES');
+    if (estado.verificarYTransicionar) {
+      await estado.verificarYTransicionar(partido);
+    }
+  }
+
+  /**
+   * Transición automática a "NECESITAMOS_JUGADORES" cuando ya no hay suficientes jugadores
+   * Delegado al estado correspondiente siguiendo el patrón State
+   */  
+  static async verificarYTransicionarANecesitamosJugadores(partidoId: string): Promise<void> {
+    const partido = await this.obtenerPartidoPorId(partidoId);
+    if (!partido || partido.estado !== 'ARMADO') {
+      return;
+    }
+
+    // Verificar si ya no tiene suficientes jugadores
+    const estaCompleto = await this.verificarPartidoCompleto(partidoId);
+    if (!estaCompleto) {
+      // Cambiar estado usando el método con validación
+      await this.cambiarEstadoConValidacion(partidoId, 'NECESITAMOS_JUGADORES');
     }
   }
 
@@ -563,6 +426,95 @@ export class PartidoService {
     if (estado.esHoraDeIniciar && estado.esHoraDeIniciar(partido)) {
       await this.cambiarEstadoConValidacion(partidoId, 'EN_JUEGO');
     }
+  }
+
+  /**
+   * Verificar si un partido permite invitaciones según su estado
+   */
+  static permiteInvitaciones(estadoPartido: EstadoPartidoType): boolean {
+    const estado = EstadoFactory.crearEstado(estadoPartido);
+    return estado.permiteInvitaciones();
+  }
+  /**
+   * Método público para notificar cambios de estado desde los estados del patrón State
+   */
+  static async notificarCambioEstado(partido: PartidoDTO, estadoAnterior: string, nuevoEstado: string): Promise<void> {
+    try {
+      await this.subject.notificarObservadores(partido, estadoAnterior, nuevoEstado);
+    } catch (error) {
+      console.error('[PartidoService] Error al notificar cambio de estado:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Método para que las clases de estado puedan actualizar el estado en base de datos
+   * Solo debe ser usado por las clases de estado del patrón State
+   */
+  static async actualizarEstadoEnBD(id: string, nuevoEstado: string): Promise<boolean> {
+    return await this.actualizarEstadoPartido(id, nuevoEstado);
+  }
+
+  /**
+   * Actualizar el estado de un partido (método interno)
+   * Solo debe ser usado por el propio PartidoService y las clases de estado
+   */
+  private static async actualizarEstadoPartido(id: string, nuevoEstado: string): Promise<boolean> {
+    const db = await dbPromise;
+    const Partido = db.Partido as any;
+
+    // Obtener el estado anterior del partido antes de actualizarlo
+    const partidoAntes = await this.obtenerPartidoPorId(id);
+    if (!partidoAntes) {
+      return false;
+    }
+    const estadoAnterior = partidoAntes.estado;
+
+    const [rowsUpdated] = await Partido.update(
+      { 
+        estado: nuevoEstado,
+        updatedAt: new Date()
+      },
+      { where: { id } }
+    );
+
+    // Si se actualizó correctamente y cambió el estado, notificar observadores
+    if (rowsUpdated > 0 && estadoAnterior !== nuevoEstado) {
+      try {
+        const partidoActualizado = await this.obtenerPartidoPorId(id);
+        if (partidoActualizado) {
+          await this.subject.notificarObservadores(partidoActualizado, estadoAnterior, nuevoEstado);
+        }
+      } catch (error) {
+        console.error('[PartidoService] Error al notificar observadores:', error);
+        // No fallar la actualización del estado si hay error en notificaciones
+      }
+    }
+
+    return rowsUpdated > 0;
+  }
+
+  // =====================================
+  // FIN SECCIÓN: MÉTODOS PATRÓN STATE
+  // =====================================
+
+  /**
+   * Verificar si un partido está completo (tiene suficientes jugadores)
+   */
+  static async verificarPartidoCompleto(partidoId: string): Promise<boolean> {
+    const db = await dbPromise;
+    const Partido = db.Partido as any;
+
+    const partido = await Partido.findByPk(partidoId);
+
+    if (!partido) {
+      return false;
+    }
+
+    const cantidadNecesaria = partido.cantidadJugadores || 0;
+    const jugadoresConfirmados = partido.jugadoresConfirmados || 0;
+
+    return jugadoresConfirmados >= cantidadNecesaria;
   }
 
   /**
@@ -586,18 +538,13 @@ export class PartidoService {
     }
 
     // Eliminar la relación usuario-partido
-    await usuarioPartido.destroy();
-
-    // Decrementar jugadoresConfirmados en el partido
+    await usuarioPartido.destroy();    // Decrementar jugadoresConfirmados en el partido
     await Partido.decrement('jugadoresConfirmados', {
       where: { id: partidoId }
-    });    // Verificar si el partido ya no tiene suficientes jugadores y revertir estado
-    const partidoActualizado = await Partido.findByPk(partidoId);
-    if (partidoActualizado && 
-        partidoActualizado.jugadoresConfirmados < partidoActualizado.cantidadJugadores &&
-        partidoActualizado.estado === 'ARMADO') {
-      await this.actualizarEstadoPartido(partidoId, 'NECESITAMOS_JUGADORES');
-    }
+    });
+
+    // Verificar si necesita volver al estado "NECESITAMOS_JUGADORES" usando patrón State
+    await this.verificarYTransicionarANecesitamosJugadores(partidoId);
 
     return true;
   }
@@ -684,5 +631,69 @@ export class PartidoService {
     );
 
     return partidosUnicos.map((partido: any) => this.mapearPartidoConRelacionesADTO(partido));
+  }
+
+  /**
+   * Actualizar equipo ganador de un partido finalizado
+   * @param partidoId ID del partido
+   * @param equipoGanador 'A' o 'B'
+   * @returns Partido actualizado
+   */
+  static async actualizarEquipoGanador(partidoId: string, equipoGanador: 'A' | 'B'): Promise<{ success: boolean, message: string, partido?: any }> {
+    const db = await dbPromise;
+    const Partido = db.Partido as any;
+    const Usuario = db.Usuario as any;
+    const Deporte = db.Deporte as any;
+    const Zona = db.Zona as any;
+    
+    try {
+      // Obtener el partido
+      const partido = await Partido.findByPk(partidoId, {
+        include: [
+          { model: Usuario, as: 'organizador' },
+          { model: Deporte },
+          { model: Zona }
+        ]
+      });
+      
+      if (!partido) {
+        return { 
+          success: false, 
+          message: 'Partido no encontrado' 
+        };
+      }      
+      // Validar que el partido esté finalizado usando EstadoFactory
+      const estadoActual = partido.estado as EstadoPartidoType;
+      if (estadoActual !== 'FINALIZADO') {
+        return { 
+          success: false, 
+          message: 'Solo se puede establecer el equipo ganador en un partido finalizado' 
+        };
+      }
+      
+      // Validar el equipo ganador
+      if (!['A', 'B'].includes(equipoGanador)) {
+        return { 
+          success: false, 
+          message: 'El equipo ganador debe ser A o B' 
+        };
+      }
+      
+      // Actualizar el campo equipoGanador
+      partido.equipoGanador = equipoGanador;      await partido.save();
+        // No notificamos a los observadores por ahora
+      // Se podría implementar una notificación específica más adelante
+      return { 
+        success: true, 
+        message: `Equipo ${equipoGanador} marcado como ganador`, 
+        partido: partido 
+      };
+    } catch (error) {
+      console.error('[PartidoService] Error al actualizar equipo ganador:', error);
+      return { 
+        success: false, 
+        message: `Error al actualizar equipo ganador: ${(error as Error).message}` 
+      };
+    }
   }
 }

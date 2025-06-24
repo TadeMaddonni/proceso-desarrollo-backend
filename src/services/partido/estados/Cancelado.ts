@@ -18,8 +18,7 @@ export class Cancelado extends EstadoPartido {
   iniciar(partido: PartidoDTO): void {
     throw new Error('No se puede iniciar un partido cancelado');
   }
-
-  finalizar(partido: PartidoDTO): void {
+  finalizar(partido: PartidoDTO, equipoGanador?: 'A' | 'B'): void {
     throw new Error('No se puede finalizar un partido cancelado');
   }
 

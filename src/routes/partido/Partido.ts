@@ -180,7 +180,6 @@ router.get(
   partidoController.obtenerPorId
 );
 
-// Eliminada la ruta de unirse a partido y sus validaciones relacionadas
 
 router.put(
   '/:id/finalizar', 
@@ -238,6 +237,29 @@ router.get(
   validacionesPartidosUsuario,
   PartidoValidationMiddleware.validarErrores,
   partidoController.obtenerPartidosDeUsuario
+);
+
+// Validaciones para actualizar equipo ganador
+const validacionesEquipoGanador = [
+  param('id')
+    .isUUID()
+    .withMessage('El ID del partido debe ser un UUID válido'),
+  
+  body('equipoGanador')
+    .notEmpty()
+    .withMessage('El equipo ganador es requerido')
+    .isIn(['A', 'B'])
+    .withMessage('El equipo ganador debe ser "A" o "B"')
+];
+
+// Ruta para actualizar equipo ganador
+router.put(
+  '/:id/ganador',
+  authenticateJWT,
+  validacionesEquipoGanador,
+  PartidoValidationMiddleware.validarErrores,
+  PartidoValidationMiddleware.validarPartidoExiste,
+  partidoController.actualizarEquipoGanador
 );
 
 export default router;

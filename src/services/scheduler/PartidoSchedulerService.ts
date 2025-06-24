@@ -147,13 +147,15 @@ export class PartidoSchedulerService {
             [Op.lt]: ahora.toISOString().split('T')[0] // Solo la fecha, sin hora
           }
         }
-      });
-
-      let actualizados = 0;
+      });      let actualizados = 0;
       for (const partido of partidos) {
-        await PartidoService.actualizarEstadoPartido(partido.id, 'CANCELADO');
-        console.log(`❌ [Scheduler] Partido ${partido.id} cancelado por falta de jugadores`);
-        actualizados++;
+        try {
+          await PartidoService.cambiarEstadoConValidacion(partido.id, 'CANCELADO');
+          console.log(`❌ [Scheduler] Partido ${partido.id} cancelado por falta de jugadores`);
+          actualizados++;
+        } catch (error) {
+          console.error(`❌ [Scheduler] Error cancelando partido ${partido.id}:`, error);
+        }
       }
 
       return actualizados;
@@ -179,12 +181,15 @@ export class PartidoSchedulerService {
       for (const partido of partidos) {
         // Construir la fecha y hora completa del partido
         const fechaPartido = new Date(`${partido.fecha} ${partido.hora}`);
-        
-        // Si ya pasó la hora de inicio, cambiar a EN_JUEGO
+          // Si ya pasó la hora de inicio, cambiar a EN_JUEGO
         if (ahora >= fechaPartido) {
-          await PartidoService.actualizarEstadoPartido(partido.id, 'EN_JUEGO');
-          console.log(`🏃 [Scheduler] Partido ${partido.id} iniciado automáticamente`);
-          actualizados++;
+          try {
+            await PartidoService.cambiarEstadoConValidacion(partido.id, 'EN_JUEGO');
+            console.log(`🏃 [Scheduler] Partido ${partido.id} iniciado automáticamente`);
+            actualizados++;
+          } catch (error) {
+            console.error(`❌ [Scheduler] Error iniciando partido ${partido.id}:`, error);
+          }
         }
       }
 
@@ -214,13 +219,16 @@ export class PartidoSchedulerService {
         
         // Calcular tiempo transcurrido desde el inicio
         const tiempoTranscurrido = ahora.getTime() - fechaInicio.getTime();
-        const horasTranscurridas = tiempoTranscurrido / (1000 * 60 * 60);
-        
-        // Si pasaron más de 3 horas desde el inicio, finalizar automáticamente
+        const horasTranscurridas = tiempoTranscurrido / (1000 * 60 * 60);        // Si pasaron más de 3 horas desde el inicio, finalizar automáticamente
         if (horasTranscurridas >= 3) {
-          await PartidoService.actualizarEstadoPartido(partido.id, 'FINALIZADO');
-          console.log(`🏁 [Scheduler] Partido ${partido.id} finalizado automáticamente (${Math.round(horasTranscurridas)} horas)`);
-          actualizados++;
+          try {
+            // Usar el método de cambio de estado con validación en lugar del método específico
+            await PartidoService.cambiarEstadoConValidacion(partido.id, 'FINALIZADO');
+            console.log(`🏁 [Scheduler] Partido ${partido.id} finalizado automáticamente (${Math.round(horasTranscurridas)} horas)`);
+            actualizados++;
+          } catch (error) {
+            console.error(`❌ [Scheduler] Error finalizando partido ${partido.id}:`, error);
+          }
         }
       }
 
